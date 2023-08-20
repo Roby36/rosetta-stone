@@ -1,0 +1,88 @@
+Create hash table, with 6 slots...
+Mem_report: 2 malloc, 0 free, 0 free(NULL), 2 net
+
+Test hashtable_insert with null hashtable, good (key,item)...
+Test hashtable_insert with null key...
+Test hashtable_insert with null set, null key...
+
+Count (should be 0): 0
+
+Testing hash_insert, using keys and items as from input files...
+Inserted key: Alabama; item: 4494228
+Inserted key: Alaska; item: 786285
+Inserted key: Arizona; item: 8176626
+Inserted key: Arkansas; item: 2996667
+Inserted key: California; item: 50419967
+Inserted key: Colorado; item: 7262860
+Inserted key: Connecticut; item: 5005114
+Inserted key: Delaware; item: 1192563
+Inserted key: District of Columbia; item: 1121523
+Inserted key: Florida; item: 26622648
+Inserted key: Georgia; item: 10591698
+Inserted key: Hawaii; item: 1997849
+Inserted key: Idaho; item: 1588934
+Inserted key: Illinois; item: 15241792
+Inserted key: Indiana; item: 6710196
+Inserted key: Iowa; item: 3425841
+Inserted key: Kansas; item: 3067859
+Inserted key: Kentucky; item: 4891295
+Inserted key: Louisiana; item: 4489027
+Inserted key: Maine; item: 1809244
+Inserted key: Maryland; item: 7917692
+Inserted key: Massachusetts; item: 9759052
+Inserted key: Michigan; item: 10568980
+Inserted key: Minnesota; item: 6625982
+Inserted key: Mississippi; item: 2788684
+Inserted key: Missouri; item: 6247438
+Inserted key: Montana; item: 1078898
+Inserted key: Nebraska; item: 2158861
+Inserted key: Nevada; item: 3378653
+Inserted key: New Hampshire; item: 1744170
+Inserted key: New Jersey; item: 11576222
+Inserted key: New Mexico; item: 2768603
+Inserted key: New York; item: 25768946
+Inserted key: North Carolina; item: 11225575
+Inserted key: North Dakota; item: 737286
+Inserted key: Ohio; item: 12018347
+Inserted key: Oklahoma; item: 4120769
+Inserted key: Oregon; item: 5206293
+Inserted key: Pennsylvania; item: 16115449
+Inserted key: Rhode Island; item: 1453886
+Inserted key: South Carolina; item: 5224289
+Inserted key: South Dakota; item: 947285
+Inserted key: Tennessee; item: 6790216
+Inserted key: Texas; item: 32265892
+Inserted key: Utah; item: 3430386
+Inserted key: Vermont; item: 934491
+Inserted key: Virginia; item: 10816729
+Inserted key: Washington; item: 9497413
+Inserted key: West Virginia; item: 1749345
+Inserted key: Wisconsin; item: 6754971
+Inserted key: Wyoming; item: 513700
+Inserted key: American Samoa; item: 61778
+Inserted key: Guam; item: 232499
+Inserted key: Northern Mariana Islands; item: 69679
+Inserted key: Puerto Rico; item: 4660110
+Inserted key: Virgin Islands; item: 101519
+Inserted key: Department of Defense; item: 5642343
+Inserted key: Federal Bureau of Prisons; item: 226878
+Inserted key: Indian Health Services; item: 1633683
+Inserted key: Long Term Care (LTC) Program; item: 7962878
+Inserted key: Veterans Health Administration; item: 5660982
+Mem_report: 130 malloc, 0 free, 0 free(NULL), 130 net
+
+Count (should be 61): 61
+
+Printing the hash:
+{(Virginia,10816729),(Oklahoma,4120769),(Minnesota,6625982),(Alaska,786285),}
+{(Long Term Care (LTC) Program,7962878),(Northern Mariana Islands,69679),(Washington,9497413),(Louisiana,4489027),(Illinois,15241792),(Arkansas,2996667),}
+{(Indian Health Services,1633683),(Guam,232499),(Wisconsin,6754971),(Utah,3430386),(Texas,32265892),(Tennessee,6790216),(New Jersey,11576222),(Nebraska,2158861),(Massachusetts,9759052),(Kentucky,4891295),(Idaho,1588934),(Connecticut,5005114),(Colorado,7262860),(Alabama,4494228),}
+{(American Samoa,61778),(Wyoming,513700),(Rhode Island,1453886),(Oregon,5206293),(Nevada,3378653),(Kansas,3067859),(Hawaii,1997849),(Florida,26622648),(District of Columbia,1121523),(Delaware,1192563),}
+{(Department of Defense,5642343),(West Virginia,1749345),(South Carolina,5224289),(North Carolina,11225575),(New Hampshire,1744170),(Montana,1078898),(Mississippi,2788684),(Michigan,10568980),(Maine,1809244),(Indiana,6710196),(Georgia,10591698),(California,50419967),}
+{(Veterans Health Administration,5660982),(Federal Bureau of Prisons,226878),(Virgin Islands,101519),(Puerto Rico,4660110),(Vermont,934491),(South Dakota,947285),(Pennsylvania,16115449),(Ohio,12018347),(North Dakota,737286),(New York,25768946),(New Mexico,2768603),(Missouri,6247438),(Maryland,7917692),(Iowa,3425841),(Arizona,8176626),}
+
+
+Deleting the hash...
+Mem_report: 130 malloc, 130 free, 0 free(NULL), 0 net
+
+Final mem_net (should be zero): 0
