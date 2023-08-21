@@ -68,9 +68,10 @@ linked_list_t * linked_list_new(void)
 void
 linked_list_insert(linked_list_t* linked_list, void* item, int item_index)
 {
+    // Double iteration inefficient!
     linked_list_node_t * prev_node = linked_list_get_item(linked_list, item_index - 1);
     linked_list_node_t * curr_node = linked_list_get_item(linked_list, item_index);
-    linked_list_node_t * new_node  = linked_list_node_new(item);
+    linked_list_node_t * new_node  = linked_list_node_new(item); // causes memory leak!
 
     if ( (prev_node == NULL && item_index != 0) || // only if we are at the head we can have a NULL prev_node 
             item == NULL || new_node == NULL)
@@ -89,6 +90,7 @@ linked_list_insert(linked_list_t* linked_list, void* item, int item_index)
 void *
 linked_list_extract(linked_list_t* linked_list, int item_index)
 {
+    // Double iteration inefficient!
     linked_list_node_t * prev_node = linked_list_get_item(linked_list, item_index - 1);
     linked_list_node_t * curr_node = linked_list_get_item(linked_list, item_index);
 
@@ -102,6 +104,54 @@ linked_list_extract(linked_list_t* linked_list, int item_index)
     
     void * item = curr_node->item; // Extract content and free node
     free(curr_node);
+    return item;
+}
+
+void
+linked_list_insert2(linked_list_t* linked_list, void* item, int item_index)
+{
+    // Check arguments
+    if (linked_list == NULL || item == NULL || item_index < 0)
+        return;
+    
+    // Initialize node to add 
+    linked_list_node_t * new_node = linked_list_node_new(item);
+
+    // Initialize address of the node next to the new_node
+    register int curr_index = 0;
+    linked_list_node_t ** next_it = &(linked_list->head);
+
+    // Iterate until the desired index, or end of list
+    while (*next_it != NULL && curr_index < item_index) {
+        next_it = &((*next_it)->next);
+        curr_index++;
+    }
+
+    // Insert new node
+    new_node->next = *next_it; // set new_node->next to currently reached node
+    *next_it       = new_node; // update the next node of currently reached node to new_node
+}
+
+void *
+linked_list_extract2(linked_list_t* linked_list, int item_index)
+{
+    // Check arguments
+    if (linked_list == NULL || item_index < 0 || linked_list->head == NULL)
+        return NULL;
+    
+    // Iterate towards node to remove
+    register int curr_index = 0;
+    linked_list_node_t ** next_it = &(linked_list->head);
+
+    while ((*next_it)->next != NULL && curr_index < item_index) {
+        next_it = &((*next_it)->next);
+        curr_index++;
+    }
+
+    void * item = (*next_it)->item;        // save item of node to remove
+    linked_list_node_t * temp = *next_it;  // save node pointer to free
+    *next_it = (*next_it)->next;           // Remove node
+    free(temp);
     return item;
 }
 

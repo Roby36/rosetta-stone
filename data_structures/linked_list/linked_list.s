@@ -36,11 +36,11 @@ lle_r:    .asciz  "\nlinked_list_extract returned %llx\n"
 _linked_list_node_new: 
     stp x29, x30, [sp, #-16]!
     str x26,      [sp, #-16]!
-    RWRAPPER llnn_c
+    RWRP , llnn_c
     mov x26, x0     // save item to non-volatile register x26 (NOT USED BY OTHER FUNCTIONS)
     // linked_list_node_t* node = malloc (sizeof(linked_list_node_t));
     mov x0, #n_size
-    MWRAPPER _malloc, mdbg0, mdbg1
+    MWRP _malloc, mdbg0, mdbg1
     // if node == NULL, go to end of function
     cmp x0, #0
     beq llnn_end
@@ -48,7 +48,7 @@ _linked_list_node_new:
     str x26, [x0, #n_item]   // node->item = item
     str xzr, [x0, #n_next]   // node->next = NULL
 llnn_end:                    // node pointer already stored in x0
-    RWRAPPER llnn_r
+    RWRP , llnn_r
     ldr x26,      [sp], #16
     ldp x29, x30, [sp], #16
     ret
@@ -78,7 +78,7 @@ loop1:                     // pre-test loop
     add w2, w2, #1         // curr_index++
     b loop1                // loop1 end
 llgi_end:
-    RWRAPPER llgi_r
+    RWRP , llgi_r
     ldp x29, x30, [sp], #16
     ret
 
@@ -89,11 +89,11 @@ _linked_list_new:
     stp x29, x30, [sp, #-16]!
     // linked_list_t* linked_list = malloc (sizeof(linked_list_t))
     mov x0, #ll_size
-    MWRAPPER _malloc, mdbg0, mdbg1
+    MWRP _malloc, mdbg0, mdbg1
     cbz x0, lln_end         // if x0 = 0, then linked_list = NULL, hence return NULL
     str xzr, [x0, #ll_head] // linked_list->head = NULL;
 lln_end:
-    RWRAPPER lln_r
+    RWRP , lln_r
     ldp x29, x30, [sp], #16
     ret
 
@@ -182,15 +182,106 @@ else2: // else
 endif2: 
     ldr x27, [x23, #n_item]     // !! USE NON-VOLATILE REGISTER x27, ELSE ITEM LOST !!!!!
     mov x0, x23                 // x0 = curr_node
-    MWRAPPER _free, fdbg0, fdbg1// free(curr_node)
+    MWRP _free, fdbg0, fdbg1// free(curr_node)
     mov x0, x27                 // x0 = item (ready for return)
 lle_end:
-    RWRAPPER lle_r
+    RWRP , lle_r
     ldr x27,      [sp], #16     // restore non-volatile registers from stack
     ldp x23, x24, [sp], #16
     ldp x20, x21, [sp], #16
     ldp x29, x30, [sp], #16
     ret
+
+/** void linked_list_insert2(linked_list_t* linked_list, void* item, int item_index) **/
+.globl _linked_list_insert2
+.p2align 2
+_linked_list_insert2:
+    stp x29, x30, [sp, #-16]!
+    stp x20, x21, [sp, #-16]!
+    stp x22, x23, [sp, #-16]!
+    stp x24, x25,  [sp, #-16]!
+
+    mov x20, x0         // x20 = linked_list
+    mov x21, x1         // x21 = item
+    mov w22, w2         // w22 = item_index
+    cmp x20, #0         // if (linked_list == NULL || item == NULL || item_index < 0) return
+    beq lli2_end
+    cmp x21, #0
+    beq lli2_end
+    cmp w22, #0
+    blt lli2_end
+
+    mov x0, x21
+    bl _linked_list_node_new
+    cmp x0, #0
+    beq lli2_end        // check NULL return
+    mov x23, x0         // x23 = new_node
+
+    mov w24, #0             // w24 = curr_index
+    add x25, x20, #ll_head  // x25 = next_it
+loop5: // while (*next_it != NULL && curr_index < item_index)
+    ldr x0, [x25]           // x0 = *next_it
+    cmp x0, #0              // *next_it != NULL
+    beq loop5_end
+    cmp w24, w22            // curr_index < item_index
+    bge loop5_end
+    add x25, x0, #n_next    // next_it = &((*next_it)->next)
+    add w24, w24, #1        // curr_index++
+    b loop5
+loop5_end:
+    str x0, [x23, #n_next]  // new_node->next = *next_it
+    str x23, [x25]          // *next_it       = new_node
+lli2_end:
+    ldp x24, x25, [sp], #16
+    ldp x22, x23, [sp], #16
+    ldp x20, x21, [sp], #16
+    ldp x29, x30, [sp], #16
+    ret
+
+/** void * linked_list_extract2(linked_list_t* linked_list, int item_index)**/
+.globl _linked_list_extract2
+.p2align 2
+_linked_list_extract2:
+    stp x29, x30, [sp, #-16]!
+    stp x20, x21, [sp, #-16]!
+    stp x22, x23, [sp, #-16]!
+    str x24,      [sp, #-16]!
+
+    mov x20, x0         // x20 = linked_list
+    mov w21, w1         // w21 = item_index
+    mov x0, #0          // if (linked_list == NULL || item_index < 0 || linked_list->head == NULL) return NULL;
+    cmp x20, #0
+    beq lle2_end
+    cmp w21, #0
+    blt lle2_end
+    ldr x1, [x20, #ll_head]
+    cmp x1, #0
+    beq lle2_end
+
+    mov w22, #0             // w22 = curr_index
+    add x23, x20, #ll_head  // x23 = next_it
+loop4:  // while ((*next_it)->next != NULL && curr_index < item_index)
+    ldr x0, [x23]            // x0 =  *next_it
+    ldr x1, [x0, #n_next]    // x1 = (*next_it)->next
+    cmp x1, #0
+    beq loop4_end
+    cmp w22, w21             // curr_index < item_index
+    bge loop4_end
+    add x23, x0, #n_next     // next_it = &((*next_it)->next)
+    add w22, w22, #1         // curr_index++
+    b loop4
+loop4_end:
+    ldr x24, [x0, #n_item]   // x24 = item
+    str x1,  [x23]           // *next_it = (*next_it)->next
+    MWRP _free, fdbg0, fdbg1 // free(*next_it)
+    mov x0, x24             
+lle2_end:
+    ldr x24,      [sp], #16
+    ldp x22, x23, [sp], #16
+    ldp x20, x21, [sp], #16
+    ldp x29, x30, [sp], #16
+    ret
+
 
 /** void linked_list_print(linked_list_t* linked_list, FILE* fp, void (*itemprint)(FILE* fp, void* item)) **/
 .globl _linked_list_print
@@ -256,12 +347,12 @@ loop3:  // while (iterator_node != NULL)
     blr x21                 // (*itemdelete)(iterator_node->item)
     ldr x23,[x22, #n_next]  // x23 = next = iterator_node->next
     mov x0, x22
-    MWRAPPER _free, fdbg0, fdbg1    // free(iterator_node)
+    MWRP _free, fdbg0, fdbg1    // free(iterator_node)
     mov x22, x23           // iterator_node = next
     b loop3                // loop3 end
 loop3_end:
     mov x0, x20
-    MWRAPPER _free, fdbg0, fdbg1    // free(linked_list)
+    MWRP _free, fdbg0, fdbg1    // free(linked_list)
 lld_end:
     ldp x22, x23, [sp], #16
     ldp x20, x21, [sp], #16
