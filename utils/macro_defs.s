@@ -97,7 +97,7 @@ fdbg0:    .asciz  "\ncalling free() with %llx\n"
 fdbg1:    .asciz  "\nfree() returned\n"
 
 // assume x0 already loaded for malloc call
-.macro MWRAPPER f, s0, s1 
+.macro MWRP f, s0, s1 
 .ifdef MDBG
     str x0, [sp, #-16]!
     LOAD_ADDR x0, \s0
@@ -114,12 +114,12 @@ fdbg1:    .asciz  "\nfree() returned\n"
 .endif
 .endm
 
-.macro RWRAPPER s
+.macro RWRP x=x0, s
 .ifdef RDBG
-    str x0, [sp, #-16]!
-    LOAD_ADDR x0, \s
+    str \x, [sp, #-16]!
+    LOAD_ADDR \x, \s
     bl _printf
-    ldr x0, [sp] // restore x0 value
+    ldr \x, [sp] // restore x0 value
     add sp, sp, #16
 .endif
 .endm

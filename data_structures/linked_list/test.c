@@ -11,7 +11,7 @@ static void linked_list_test1();
 
 int main() 
 {
-    linked_list_test1();
+    linked_list_test0();
     
     return 0;
 }

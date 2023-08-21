@@ -66,48 +66,6 @@ linked_list_t * linked_list_new(void)
 /**************** linked_list_insert() ****************/
 /* see linked_list.h for description */
 void
-linked_list_insert(linked_list_t* linked_list, void* item, int item_index)
-{
-    // Double iteration inefficient!
-    linked_list_node_t * prev_node = linked_list_get_item(linked_list, item_index - 1);
-    linked_list_node_t * curr_node = linked_list_get_item(linked_list, item_index);
-    linked_list_node_t * new_node  = linked_list_node_new(item); // causes memory leak!
-
-    if ( (prev_node == NULL && item_index != 0) || // only if we are at the head we can have a NULL prev_node 
-            item == NULL || new_node == NULL)
-        return;
-    
-    new_node->next = curr_node;      // set new node to point towards currently indexed node (can be NULL if we are at the end of list)
-
-    if (prev_node != NULL)           // if we are not at the start of the linked list, 
-        prev_node->next = new_node;  // set the previous node to point towards newly inserted node    
-    else
-        linked_list->head = new_node; // update head if we are at the start of linked list
-}
-
-/**************** linked_list_extract() ****************/
-/* see linked_list.h for description */
-void *
-linked_list_extract(linked_list_t* linked_list, int item_index)
-{
-    // Double iteration inefficient!
-    linked_list_node_t * prev_node = linked_list_get_item(linked_list, item_index - 1);
-    linked_list_node_t * curr_node = linked_list_get_item(linked_list, item_index);
-
-    if (curr_node == NULL) // check if index is valid
-        return NULL;
-    
-    if (prev_node != NULL) // not at the head of linked list
-        prev_node->next = curr_node->next;
-    else // if we are at the head of linked list, update head
-        linked_list->head = curr_node->next;
-    
-    void * item = curr_node->item; // Extract content and free node
-    free(curr_node);
-    return item;
-}
-
-void
 linked_list_insert2(linked_list_t* linked_list, void* item, int item_index)
 {
     // Check arguments
@@ -132,6 +90,8 @@ linked_list_insert2(linked_list_t* linked_list, void* item, int item_index)
     *next_it       = new_node; // update the next node of currently reached node to new_node
 }
 
+/**************** linked_list_extract() ****************/
+/* see linked_list.h for description */
 void *
 linked_list_extract2(linked_list_t* linked_list, int item_index)
 {
@@ -170,11 +130,15 @@ linked_list_print(linked_list_t* linked_list, FILE* fp, void (*itemprint)(FILE* 
 
     fprintf(fp, "["); // opening bracket
     linked_list_node_t* iterator_node = linked_list->head; // start PRE-CONDITION loop
+
     while (iterator_node != NULL) {
         (*itemprint)(fp, iterator_node->item);
+
         fprintf(fp, " -> ");
+
         iterator_node = iterator_node->next;
     }
+    
     fprintf(fp, "]"); // closing bracket
 }
 

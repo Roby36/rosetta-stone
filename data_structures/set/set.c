@@ -28,7 +28,6 @@ typedef struct set{
 } set_t;  // opaque to users of the module
 
 
-
 /**************** functions ****************/
 static element_t* element_new(char* key, void* item);
 static element_t* key_find(set_t* setp, const char* key);
@@ -37,8 +36,6 @@ static element_t* key_find(set_t* setp, const char* key);
 int nmalloc = 0;
 int nfree = 0;
 int nfreenull = 0;
-
-
 
 /**************** set_new ****************/
 /* see set.h for description */
