@@ -1,26 +1,21 @@
 
 # Makefile for 'set' module
 
-# PROG =
-OBJS = mem.o file.o set.o test.o
-LIBS = -lm
+CFLAGS 	= -g -O3
+MAKE 	= make
+CC 		= gcc
+LIBDIR 	= ../lib
 
-CFLAGS = -Wall -pedantic -std=c11 -ggdb 
-MAKE = make
-CC = gcc
+.PHONY: c asm clean
 
-.PHONY: clean test
-
-test: $(OBJS) 
-	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o test
-
-set.o: set.h mem.h
-mem.o: mem.h 
-file.o: file.h
-test.o: set.h mem.h file.h
-
+c:
+	$(CC) $(CFLAGS) -o test_c $(LIBDIR)/file.c set.c test.c
+asm:
+	$(CC) $(CFLAGS) -o test_asm $(LIBDIR)/file.c set.s test.c
 
 clean:
 	rm -rf *.dSYM  # MacOS debugger info
+	rm -f test_c
+	rm -f test_asm
 	rm -f *~ *.o
 	rm -f core

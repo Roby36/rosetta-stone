@@ -1,18 +1,5 @@
 
-/*
- * Roberto Brera,  CS50
- *
- * Implementation of set.h interface:
- * 
-*/
-
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
-#include <strings.h>
-#include <stdlib.h>
 #include "set.h"
-#include "mem.h"
 
 /**************** local types ****************/
 typedef struct element {
@@ -21,32 +8,22 @@ typedef struct element {
   struct element* next;       
 } element_t;
 
-
 /**************** global types ****************/
 typedef struct set{
     struct element* head;
 } set_t;  // opaque to users of the module
 
-
 /**************** functions ****************/
-static element_t* element_new(char* key, void* item);
-static element_t* key_find(set_t* setp, const char* key);
-
-/**************** malloc, free, and freenull counters ****************/
-int nmalloc = 0;
-int nfree = 0;
-int nfreenull = 0;
+static element_t* __attribute__ ((noinline)) key_find(set_t* setp, const char* key);
 
 /**************** set_new ****************/
 /* see set.h for description */
 set_t* 
 set_new(void){
-
-    set_t* setp = mem_malloc(sizeof(set_t));
-    if (setp == NULL) { return NULL;}
-
-    setp -> head = NULL;
-    return setp;
+    set_t* new_set = malloc(sizeof(set_t));
+    if (new_set != NULL)
+        new_set->head = NULL; 
+    return new_set;
 }
 
 /**************** set_insert ****************/
@@ -54,24 +31,30 @@ set_new(void){
 bool 
 set_insert(set_t* set, const char* key, void* item){
 
-    if (set == NULL || key == NULL || item == NULL ) { return false; }
+    if (set == NULL || key == NULL || item == NULL) 
+        return false;
 
     // First check if key exists already in set:
-    if (key_find(set, key) != NULL) { return false; }
+    if (key_find(set, key) != NULL) 
+        return false; 
 
     // If key does not already exist in set, then we allocate space for it:
-    char* key_copy = mem_malloc(strlen(key)+1);
-    if (key_copy == NULL) { return false; }
-    strcpy(key_copy,key);
-    if (strcmp(key_copy,key) != 0) { return false; }
+    int key_length = strlen(key) + 1;
+    char* key_copy = malloc(key_length);
+    if (key_copy == NULL) 
+        return false;
+    strncpy(key_copy, key, key_length);
 
-    // Generate new element, using copied string:
-    element_t* new = element_new(key_copy,item);
-    if (new == NULL) { return false; }
+    // Initialize new element, using copied string:
+    element_t* new_element = malloc(sizeof(element_t));
+    if (new_element == NULL) 
+        return false;
+    new_element->key  = key_copy;
+    new_element->item = item;
 
-    // Inserting element in set:
-    new -> next = set -> head;
-    set -> head = new;
+    // Insert element on top of set
+    new_element->next = set->head;
+    set->head         = new_element;
 
     return true;
 }
@@ -80,37 +63,12 @@ set_insert(set_t* set, const char* key, void* item){
 /* see set.h for description */
 void* 
 set_find(set_t* set, const char* key) {
-
-    if (set == NULL || key == NULL) { return NULL; }
-
-    element_t* elementp = key_find(set, key);
-    if (elementp == NULL) { return NULL; }
-    return (elementp -> item);
+    // key_find already validates the arguments
+    element_t* el = key_find(set, key);
+    if (el == NULL) 
+        return NULL; 
+    return (el->item);
 }
-
-/**************** set_print ****************/
-/* see set.h for description */
-void 
-set_print(set_t* set, FILE* fp, 
-            void (*itemprint)(FILE* fp, const char* key, void* item) ){
-
-                if (fp != NULL) {
-                    if (set != NULL) {
-                        fputc('{',fp);
-                        for (element_t* elementp = set -> head; elementp != NULL; elementp = elementp -> next){
-                            if (itemprint != NULL) {
-                                (*itemprint)(fp, elementp -> key, elementp -> item);
-                                fputc(',',fp);
-                            }
-                        }
-                        fputc('}',fp);
-                    }
-                    else {
-                        fputs("(null)", fp);
-                    }
-                }
-               }
-
 
 /**************** set_iterate ****************/
 /* see set.h for description */
@@ -118,64 +76,70 @@ void
 set_iterate(set_t* set, void* arg,
                  void (*itemfunc)(void* arg, const char* key, void* item) ){
                     
-                    if (set == NULL || itemfunc == NULL) { return; }
-                    for (element_t* elementp = set -> head; elementp != NULL; elementp = elementp -> next){
-                        (*itemfunc)(arg, elementp -> key, elementp -> item);
-                    }
-                 }
+    if (set == NULL || itemfunc == NULL) 
+        return;
+    for (element_t* it = set->head; 
+                    it != NULL; 
+                    it = it->next) {
+        (*itemfunc)(arg, it->key, it->item);
+    }
+}
+
+/**************** set_print ****************/
+/* see set.h for description */
+void 
+set_print(set_t* set, FILE* fp, 
+            void (*itemprint)(FILE* fp, const char* key, void* item) ) {
+    
+    if (fp == NULL)
+        return;
+    if (set == NULL) {
+        fprintf(fp, "(null)");
+        return;
+    }
+
+    fprintf(fp, "{");
+    set_iterate(set, fp, itemprint);
+    fprintf(fp, "}");
+}
 
 /**************** set_delete ****************/
 /* see set.h for description */
 void 
 set_delete(set_t* set, void (*itemdelete)(void* item) ){
 
-    if (set == NULL) { return; }
-    for (element_t* elementp = set -> head; elementp != NULL;) {
+    if (set == NULL) 
+        return;
+    for (element_t* it = set->head; 
+                    it != NULL;) {
+        // shortcut possible when compiling
         if (itemdelete != NULL) {
-            (*itemdelete)(elementp -> item);
+            (*itemdelete)(it->item);
         }
         // Key strings freed even if itemdelete is NULL:
-        mem_free(elementp -> key);
-        element_t* next = elementp -> next;
-        mem_free(elementp);
-        elementp = next;
+        free(it->key);
+        element_t* next = it->next;
+        free(it);
+        it = next;
     }
-    mem_free(set);
-}
-
-
-
-/**************** element_new ****************/
-/* Allocate and initialize an element */
-static element_t* 
-element_new(char* key, void* item){
-
-    mem_assert((void*) key, "key"); mem_assert(item, "item");
-
-    element_t* elementp = mem_malloc(sizeof(element_t));
-    if (elementp == NULL) { return NULL;}
-
-    elementp -> key = key;
-    elementp -> item = item;
-    elementp -> next = NULL;
-    return elementp;
+    free(set);
 }
 
 /**************** key_find ****************/
 /* Return pointer to element with desired key if key exists in set,
  * and NULL if key does not exist in set, or if a given pointer is invalid: */
-static element_t*
-key_find(set_t* setp, const char* key) {
+element_t*
+key_find (set_t* set, const char* key) {
 
-    if (setp == NULL || key == NULL) { return NULL; }
+    if (set == NULL || key == NULL) 
+        return NULL; 
 
-    for (element_t* elementp = setp -> head; elementp != NULL; elementp = elementp -> next) {
-        if (strcmp(elementp -> key, key) == 0) { 
-            return elementp; }
+    for (element_t* it = set->head; 
+                    it!= NULL; 
+                    it = it->next) {
+        if (strncmp(it->key, key, strlen(it->key) + 1) == 0)
+            return it; 
     }
 
     return NULL;
-
 }
-
-
