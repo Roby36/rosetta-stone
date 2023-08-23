@@ -48,6 +48,7 @@ _key_find:
     str x23,      [sp, #-16]!
     RWRP x1, key_find_c
 
+    mov x22, xzr
     cmp x0, xzr                 // if x0 != 0, set PSTATE to cmp x1, xzr
     ccmp x1, xzr, #0b0100, ne   // if x0 = 0, set Z = 1
     beq loop1_end               // this ensures we return NULL 
@@ -55,24 +56,18 @@ _key_find:
     ldr x22, [x0, #s_head]      // x22 = it
 loop1:
     cbz x22, loop1_end          // if (it == NULL), goto loop end
-    ldr x23, [x22, el_key]      // x23 = it->key
+    ldr x23, [x22, #el_key]     // x23 = it->key
     mov x0, x23
     bl _strlen
     add x2, x0, #1              // x2 = strlen(it->key) + 1
     mov x1, x21                 // x1 = key
     mov x0, x23                 // x0 = it->key
     bl _strncmp     
-    cbz w0, if1
-    b endif1
-if1:    // if (strncmp(it->key, key, strlen(it->key) + 1) == 0) 
-    mov x0, x22                 // return it
-    b kf_end                    
-endif1:
+    cbz w0, loop1_end           // break loop if element found
     ldr x22, [x22, #el_next]    // it = it->next
     b loop1
 loop1_end:
-    mov x0, xzr                 // return NULL
-
+    mov x0, x22                 // it = found element, or NULL if element not found
 kf_end:
     RWRP , key_find_r
     ldr x23,      [sp], #16

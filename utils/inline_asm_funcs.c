@@ -1,11 +1,5 @@
 
-#include <stdio.h>
-
-/** COMPILING: gcc -o inline_test inline_asm_funcs.c macro_defs.s */
-
-extern void print_current_pc();
-
-extern int64_t get_current_pc();
+#include "inline_asm_funcs.h"
 
 int64_t get_sp() {
     int64_t res = 0;
@@ -45,9 +39,3 @@ static void test1() {
             prev_pc, curr_pc, curr_pc - prev_pc);
 }
 
-int main() {
-
-    test1();
-    
-    return 0;
-}

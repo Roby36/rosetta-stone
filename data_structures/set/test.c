@@ -8,7 +8,7 @@
 #include "set.h"
 #include "../lib/file.h"
 
-#define NUMITEMS 100000
+#define NUMITEMS 50000
 
 static void nameprint(FILE* fp, const char* key, void* item);
 static void namedelete(void* item);
@@ -119,6 +119,7 @@ void test1() {
 
     fclose(keyfile);
     fclose(itemfile);
+
 }
 
 void test2() {
@@ -136,10 +137,10 @@ void test2() {
         b += 1;
         c += 1;
         char test_string0[] = {a, b, c};
-        char test_string1[] = {a, b, c+1};
+        char test_string1[] = {a, b, c + 1};
 
         set_insert(set, test_string0, test_string0);
-        // set_find(set, test_string1);
+        set_find(set, test_string1); // deliberately searching a string not present in set
     }
 
     // Count number of items in the set

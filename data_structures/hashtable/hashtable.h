@@ -1,18 +1,13 @@
-/* 
- * hashtable.h - header file for CS50 hashtable module
- *
- * A *hashtable* is a set of (key,item) pairs.  It acts just like a set, 
- * but is far more efficient for large collections.
- *
- * David Kotz, April 2016, 2017, 2019, 2021
- * updated by Xia Zhou, July 2016
- */
 
-#ifndef __HASHTABLE_H
-#define __HASHTABLE_H
+#pragma once
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
+#include <strings.h>
+#include <stdlib.h>
+#include "set.h"
+#include "hash.h"
 
 /**************** global types ****************/
 typedef struct hashtable hashtable_t;  // opaque to users of the module
@@ -47,7 +42,7 @@ hashtable_t* hashtable_new(const int num_slots);
  *   later deallocating that memory; thus, the caller is free to re-use or 
  *   deallocate its key string after this call.  
  */
-bool hashtable_insert(hashtable_t* ht, const char* key, void* item);
+extern bool hashtable_insert(hashtable_t* ht, const char* key, void* item);
 
 /**************** hashtable_find ****************/
 /* Return the item associated with the given key.
@@ -60,25 +55,7 @@ bool hashtable_insert(hashtable_t* ht, const char* key, void* item);
  * Notes:
  *   the hashtable is unchanged by this operation.
  */
-void* hashtable_find(hashtable_t* ht, const char* key);
-
-/**************** hashtable_print ****************/
-/* Print the whole table; provide the output file and func to print each item.
- * 
- * Caller provides:
- *   valid pointer to hashtable, 
- *   FILE open for writing,
- *   itemprint that can print a single (key, item) pair.
- * We print:
- *   nothing, if NULL fp.
- *   "(null)" if NULL ht.
- *   one line per hash slot, with no items, if NULL itemprint.
- *   otherwise, one line per hash slot, listing (key,item) pairs in that slot.
- * Note:
- *   the hashtable and its contents are not changed by this function,
- */
-void hashtable_print(hashtable_t* ht, FILE* fp, 
-                     void (*itemprint)(FILE* fp, const char* key, void* item));
+extern void* hashtable_find(hashtable_t* ht, const char* key);
 
 /**************** hashtable_iterate ****************/
 /* Iterate over all items in the table; in undefined order.
@@ -95,8 +72,25 @@ void hashtable_print(hashtable_t* ht, FILE* fp,
  *   the hashtable and its contents are not changed by this function,
  *   but the itemfunc may change the contents of the item.
  */
-void hashtable_iterate(hashtable_t* ht, void* arg,
+extern void hashtable_iterate(hashtable_t* ht, void* arg,
                        void (*itemfunc)(void* arg, const char* key, void* item) );
+/**************** hashtable_print ****************/
+/* Print the whole table; provide the output file and func to print each item.
+ * 
+ * Caller provides:
+ *   valid pointer to hashtable, 
+ *   FILE open for writing,
+ *   itemprint that can print a single (key, item) pair.
+ * We print:
+ *   nothing, if NULL fp.
+ *   "(null)" if NULL ht.
+ *   one line per hash slot, with no items, if NULL itemprint.
+ *   otherwise, one line per hash slot, listing (key,item) pairs in that slot.
+ * Note:
+ *   the hashtable and its contents are not changed by this function,
+ */
+extern void hashtable_print(hashtable_t* ht, FILE* fp, 
+                     void (*itemprint)(FILE* fp, const char* key, void* item));
 
 /**************** hashtable_delete ****************/
 /* Delete hashtable, calling a delete function on each item.
@@ -112,6 +106,5 @@ void hashtable_iterate(hashtable_t* ht, void* arg,
  *   We free the strings that represent key for each item, because 
  *   this module allocated that memory in hashtable_insert.
  */
-void hashtable_delete(hashtable_t* ht, void (*itemdelete)(void* item) );
+extern void hashtable_delete(hashtable_t* ht, void (*itemdelete)(void* item) );
 
-#endif // __HASHTABLE_H
