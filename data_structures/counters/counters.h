@@ -1,22 +1,11 @@
-/* 
- * counters.h - header file for CS50 counters module
- *
- * A "counter set" is a set of counters, each distinguished by an integer key.
- * It's a set - each key can only occur once in the set - but instead of
- * storing (key,item) pairs, it tracks a counter for each key.  It starts
- * empty. Each time `counters_add` is called on a given key, that key's
- * counter is incremented. The current counter value can be retrieved by
- * asking for the relevant key.
- * 
- * David Kotz, April 2016, 2017, 2019, 2021
- * Xia Zhou, July 2017
- */
 
-#ifndef __COUNTERS_H
-#define __COUNTERS_H
+#pragma once
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
+#include <strings.h>
+#include <stdlib.h>
 
 /**************** global types ****************/
 typedef struct counters counters_t;  // opaque to users of the module
@@ -33,7 +22,7 @@ typedef struct counters counters_t;  // opaque to users of the module
  * Caller is responsible for:
  *   later calling counters_delete();
  */
-counters_t* counters_new(void);
+extern counters_t* counters_new(void);
 
 /**************** counters_add ****************/
 /* Increment the counter indicated by key.
@@ -50,7 +39,7 @@ counters_t* counters_new(void);
  *  if the key does not yet exist, create a counter for it and initialize to 1.
  *  if the key does exist, increment its counter by 1.
  */
-int counters_add(counters_t* ctrs, const int key);
+extern int counters_add(counters_t* ctrs, const int key);
 
 /**************** counters_get ****************/
 /* Return current value of counter associated with the given key.
@@ -63,7 +52,7 @@ int counters_add(counters_t* ctrs, const int key);
  * Note:
  *   counterset is unchanged as a result of this call.
  */
-int counters_get(counters_t* ctrs, const int key);
+extern int counters_get(counters_t* ctrs, const int key);
 
 /**************** counters_set ****************/
 /* Set the current value of counter associated with the given key.
@@ -80,7 +69,7 @@ int counters_get(counters_t* ctrs, const int key);
  *   the given value. 
  *   If the key does exist, update its counter value to the given value.
  */
-bool counters_set(counters_t* ctrs, const int key, const int count);
+extern bool counters_set(counters_t* ctrs, const int key, const int count);
 
 /**************** counters_print ****************/
 /* Print all counters; provide the output file.
@@ -93,7 +82,7 @@ bool counters_set(counters_t* ctrs, const int key, const int count);
  *   "(null)" if NULL ctrs.
  *   otherwise, comma=separated list of key=counter pairs, all in {brackets}.
  */
-void counters_print(counters_t* ctrs, FILE* fp);
+extern void counters_print(counters_t* ctrs, FILE* fp);
 
 /**************** counters_iterate ****************/
 /* Iterate over all counters in the set.
@@ -109,7 +98,7 @@ void counters_print(counters_t* ctrs, FILE* fp);
  *   the order in which items are handled is undefined.
  *   the counterset is unchanged by this operation.
  */
-void counters_iterate(counters_t* ctrs, void* arg, 
+extern void counters_iterate(counters_t* ctrs, void* arg, 
                       void (*itemfunc)(void* arg, 
                                        const int key, const int count));
 
@@ -122,6 +111,4 @@ void counters_iterate(counters_t* ctrs, void* arg,
  *   we ignore NULL ctrs.
  *   we free all memory we allocate for this counterset.
  */
-void counters_delete(counters_t* ctrs);
-
-#endif // __COUNTERS_H
+extern void counters_delete(counters_t* ctrs);

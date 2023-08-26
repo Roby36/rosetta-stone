@@ -116,11 +116,12 @@ fdbg1:    .asciz  "\nfree() returned\n"
 
 .macro RWRP x=x0, s
 .ifdef RDBG
+    str x0, [sp, #-16]!
     str \x, [sp, #-16]!
     LOAD_ADDR x0, \s
     bl _printf
-    ldr \x, [sp] // restore register value
-    add sp, sp, #16
+    ldr \x, [sp], #16 // restore register values
+    ldr x0, [sp], #16
 .endif
 .endm
 

@@ -1,27 +1,30 @@
 
 # Makefile for 'counters' module
 
-# PROG =
-OBJS = mem.o file.o counters.o test.o
-LIBS = -lm
-# DEBUG = -DEBUG
+MAKE 	= make
+CC 		= gcc
+LIBDIR 	= ../lib
+CFLAGS 	= -I$(LIBDIR)
 
-CFLAGS = -Wall -pedantic -std=c11 -ggdb 
-MAKE = make
-CC = gcc
+.PHONY: c asm clean
 
-.PHONY: clean test
-
-test: $(OBJS)
-	$(CC) $(CFLAGS) $(DEBUG) $(OBJS) $(LIBS) -o test
-
-counters.o: counters.h mem.h
-mem.o: mem.h 
-file.o: file.h
-test.o: counters.h mem.h file.h
-
+c:
+# compile optimized assembly file
+	$(CC) $(CFLAGS) -O3 -S counters.c -o counters_O3.s
+# link with other source files
+	$(CC) $(CFLAGS) -o test_c $(LIBDIR)/file.c counters_O3.s test.c
+cclean:
+	$(CC) $(CFLAGS) -o test_cclean $(LIBDIR)/file.c counters_O3_clean.s test.c
+asm:
+# link .s file directly
+	$(CC) $(CFLAGS) -g -o test_asm $(LIBDIR)/file.c counters.s test.c
+mix:
+	$(CC) $(CFLAGS) -g -o test_asm $(LIBDIR)/file.c counters.c counters.s test.c
 
 clean:
 	rm -rf *.dSYM  # MacOS debugger info
+	rm -f test_c
+	rm -f test_asm
+	rm -f test_cclean
 	rm -f *~ *.o
 	rm -f core
