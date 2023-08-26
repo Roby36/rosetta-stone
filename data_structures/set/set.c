@@ -15,6 +15,8 @@ typedef struct set{
 
 /**************** functions ****************/
 static element_t* __attribute__ ((noinline)) key_find(set_t* setp, const char* key);
+static void set_merge_helper(void* arg, const char* key, void* item);
+static void set_intersect_helper(void* arg, const char* key, void* item);
 
 /**************** set_new ****************/
 /* see set.h for description */
@@ -142,4 +144,64 @@ key_find (set_t* set, const char* key) {
     }
 
     return NULL;
+}
+
+void set_merge(set_t* setA, set_t* setB)
+{
+    set_iterate(setB, setA, set_merge_helper);
+}
+
+void set_merge_helper(void* arg, const char* key, void* item)
+{
+    set_t * setA = arg;
+    int * B_val  = item;
+    int * A_val;
+
+    /* if key found in setA, increment total value by value in B */
+    if ((A_val = set_find(setA, key)) != NULL) 
+        *A_val += *B_val;
+    /* Otherwise insert in A key with value in B (duplicated!)*/
+    else {
+        int * B_val_copy = malloc(sizeof(int));
+        *B_val_copy      = *B_val;
+        set_insert(setA, key, B_val_copy);
+    }     
+}
+
+typedef struct set_intsct_strct {
+    set_t* setA;    // non-iterating set of intersection
+    set_t* setC;    // resulting set from intersection
+} set_inter_t;
+
+set_t* set_intersect(set_t* setA, set_t* setB)
+{
+    /* Load struct on stack*/
+    set_t * setC = set_new();
+    set_inter_t sit;
+    sit.setA   = setA;
+    sit.setC   = setC;
+
+    /* Iterate through setB */
+    set_iterate(setB, &sit, set_intersect_helper); 
+
+    /* return resulting set */
+    return sit.setC;
+}
+
+void set_intersect_helper(void* arg, const char* key, void* item)
+{
+    /* Extract struct set pointers */
+    set_inter_t * sit = arg;
+    set_t * setA      = sit->setA;
+    set_t * setC      = sit->setC;
+
+    /* Check if the key is present in setA */
+    int * A_val;
+    int * B_val = item;
+    if ((A_val = set_find(setA, key)) == NULL)
+        return;
+    /* Insert in setC the minimum value */
+    int* min = malloc(sizeof(int));
+    *min     = (*A_val < *B_val) ? *A_val : *B_val;
+    set_insert(setC, key, min);
 }

@@ -315,6 +315,155 @@ LBB6_6:
 	ret
 	.cfi_endproc
                                         ; -- End function
+	.globl	_set_merge                      ; -- Begin function set_merge
+	.p2align	2
+_set_merge:                             ; @set_merge
+	.cfi_startproc
+; %bb.0:
+	mov	x8, x0
+Lloh2:
+	adrp	x2, _set_merge_helper@PAGE
+Lloh3:
+	add	x2, x2, _set_merge_helper@PAGEOFF
+	mov	x0, x1
+	mov	x1, x8
+	b	_set_iterate
+	.loh AdrpAdd	Lloh2, Lloh3
+	.cfi_endproc
+                                        ; -- End function
+	.p2align	2                               ; -- Begin function set_merge_helper
+_set_merge_helper:                      ; @set_merge_helper
+	.cfi_startproc
+; %bb.0:
+	stp	x22, x21, [sp, #-48]!           ; 16-byte Folded Spill
+	.cfi_def_cfa_offset 48
+	stp	x20, x19, [sp, #16]             ; 16-byte Folded Spill
+	stp	x29, x30, [sp, #32]             ; 16-byte Folded Spill
+	add	x29, sp, #32
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	mov	x19, x2
+	mov	x20, x1
+	mov	x21, x0
+	bl	_key_find
+	cbz	x0, LBB8_3
+; %bb.1:
+	ldr	x8, [x0, #8]
+	cbz	x8, LBB8_3
+; %bb.2:
+	ldr	w9, [x19]
+	ldr	w10, [x8]
+	add	w9, w10, w9
+	str	w9, [x8]
+	ldp	x29, x30, [sp, #32]             ; 16-byte Folded Reload
+	ldp	x20, x19, [sp, #16]             ; 16-byte Folded Reload
+	ldp	x22, x21, [sp], #48             ; 16-byte Folded Reload
+	ret
+LBB8_3:
+	mov	w0, #4
+	bl	_malloc
+	mov	x2, x0
+	ldr	w8, [x19]
+	str	w8, [x0]
+	mov	x0, x21
+	mov	x1, x20
+	ldp	x29, x30, [sp, #32]             ; 16-byte Folded Reload
+	ldp	x20, x19, [sp, #16]             ; 16-byte Folded Reload
+	ldp	x22, x21, [sp], #48             ; 16-byte Folded Reload
+	b	_set_insert
+	.cfi_endproc
+                                        ; -- End function
+	.globl	_set_intersect                  ; -- Begin function set_intersect
+	.p2align	2
+_set_intersect:                         ; @set_intersect
+	.cfi_startproc
+; %bb.0:
+	sub	sp, sp, #48
+	.cfi_def_cfa_offset 48
+	stp	x20, x19, [sp, #16]             ; 16-byte Folded Spill
+	stp	x29, x30, [sp, #32]             ; 16-byte Folded Spill
+	add	x29, sp, #32
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	mov	x19, x1
+	mov	x20, x0
+	mov	w0, #8
+	bl	_malloc
+	cbz	x0, LBB9_2
+; %bb.1:
+	str	xzr, [x0]
+LBB9_2:
+	stp	x20, x0, [sp]
+Lloh4:
+	adrp	x2, _set_intersect_helper@PAGE
+Lloh5:
+	add	x2, x2, _set_intersect_helper@PAGEOFF
+	mov	x1, sp
+	mov	x0, x19
+	bl	_set_iterate
+	ldr	x0, [sp, #8]
+	ldp	x29, x30, [sp, #32]             ; 16-byte Folded Reload
+	ldp	x20, x19, [sp, #16]             ; 16-byte Folded Reload
+	add	sp, sp, #48
+	ret
+	.loh AdrpAdd	Lloh4, Lloh5
+	.cfi_endproc
+                                        ; -- End function
+	.p2align	2                               ; -- Begin function set_intersect_helper
+_set_intersect_helper:                  ; @set_intersect_helper
+	.cfi_startproc
+; %bb.0:
+	stp	x22, x21, [sp, #-48]!           ; 16-byte Folded Spill
+	.cfi_def_cfa_offset 48
+	stp	x20, x19, [sp, #16]             ; 16-byte Folded Spill
+	stp	x29, x30, [sp, #32]             ; 16-byte Folded Spill
+	add	x29, sp, #32
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	mov	x21, x2
+	mov	x19, x1
+	ldp	x8, x20, [x0]
+	mov	x0, x8
+	bl	_key_find
+	cbz	x0, LBB10_3
+; %bb.1:
+	ldr	x22, [x0, #8]
+	cbz	x22, LBB10_3
+; %bb.2:
+	mov	w0, #4
+	bl	_malloc
+	mov	x2, x0
+	ldr	w8, [x22]
+	ldr	w9, [x21]
+	cmp	w8, w9
+	csel	w8, w8, w9, lt
+	str	w8, [x0]
+	mov	x0, x20
+	mov	x1, x19
+	ldp	x29, x30, [sp, #32]             ; 16-byte Folded Reload
+	ldp	x20, x19, [sp, #16]             ; 16-byte Folded Reload
+	ldp	x22, x21, [sp], #48             ; 16-byte Folded Reload
+	b	_set_insert
+LBB10_3:
+	ldp	x29, x30, [sp, #32]             ; 16-byte Folded Reload
+	ldp	x20, x19, [sp, #16]             ; 16-byte Folded Reload
+	ldp	x22, x21, [sp], #48             ; 16-byte Folded Reload
+	ret
+	.cfi_endproc
+                                        ; -- End function
 	.section	__TEXT,__cstring,cstring_literals
 l_.str:                                 ; @.str
 	.asciz	"(null)"

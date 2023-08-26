@@ -22,7 +22,6 @@ typedef struct linked_list linked_list_t;  // opaque to users of the module
  */
 extern linked_list_t* linked_list_new(void);
 
-
 /**************** linked_list_insert ****************/
 /* Add new item to the linked_list, at given index
  *
@@ -34,7 +33,6 @@ extern linked_list_t* linked_list_new(void);
  * Caller is responsible for:
  *   not free-ing the item as long as it remains in the linked_list.
  */
-extern void linked_list_insert (linked_list_t* linked_list, void* item, int item_index);
 extern void linked_list_insert2(linked_list_t* linked_list, void* item, int item_index);
 
 /**************** linked_list_extract ****************/
@@ -50,7 +48,6 @@ extern void linked_list_insert2(linked_list_t* linked_list, void* item, int item
  * Caller is responsible for:
  *   free-ing the item if it was originally allocated with malloc.
  */
-extern void * linked_list_extract (linked_list_t* linked_list, int item_index);
 extern void * linked_list_extract2(linked_list_t* linked_list, int item_index);
 
 /**************** linked_list_print ****************/

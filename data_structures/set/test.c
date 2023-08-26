@@ -14,14 +14,18 @@ static void nameprint(FILE* fp, const char* key, void* item);
 static void namedelete(void* item);
 static void namecount(void* arg, const char* key, void* item);
 static void nodelete(void * item);
+static int* intsave(int i);
+static void intdelete(void * item);
+static void intprint(FILE* fp, const char* key, void* item);
 
 static void test1();
 static void test2();
+static void test3();
 
 /* **************************************** */
 int main() 
 {
-    test2();
+    test3();
 
     return 0;
 }
@@ -52,12 +56,36 @@ void nameprint(FILE* fp, const char* key, void* item)
   }
 }
 
+void intprint(FILE* fp, const char* key, void* item)
+{
+    if (key == NULL)
+        return;
+    if (item == NULL)
+        fprintf(fp, "(%s, (null)), ", key);
+    else
+        fprintf(fp, "(%s, %d), ", key, *(int*)item);
+}
+
 // delete a name 
 void namedelete(void* item)
 {
   if (item != NULL) {
     free(item);   
   }
+}
+
+int* intsave(int i)
+{
+    int * intptr = malloc(sizeof(int));
+    if (intptr != NULL)
+        *intptr = i;
+    return intptr;
+}
+
+void intdelete(void * item)
+{
+    if (item != NULL)
+        free(item);
 }
 
 void nodelete(void * item)
@@ -152,5 +180,52 @@ void test2() {
 
     clock_t end_time = clock();
     printf("test2() with NUMITEMS %d took %f seconds\n", NUMITEMS, ((double) end_time - (double) start_time) / 1000000.00);
+
+}
+
+void test3() {
+
+    set_t* setA = set_new();
+    set_t* setB = set_new();
+
+    set_insert(setA, "A", intsave(2));
+    set_insert(setA, "B", intsave(4));
+    set_insert(setA, "C", intsave(1));
+    set_insert(setA, "D", intsave(3));
+    set_insert(setA, "E", intsave(7));
+    set_insert(setA, "F", intsave(2));
+
+    set_insert(setB, "A", intsave(5));
+    set_insert(setB, "C", intsave(6));
+    set_insert(setB, "E", intsave(8));
+    set_insert(setB, "G", intsave(1));
+    set_insert(setB, "I", intsave(4));
+    set_insert(setB, "K", intsave(2));
+
+    printf("Printing setA\n");
+    set_print(setA, stdout, intprint);
+
+    printf("\nPrinting setB\n");
+    set_print(setB, stdout, intprint);
+
+    printf("\nMerging setA and setB\n");
+
+    set_merge(setA, setB);
+
+    printf("\nPrinting setA\n");
+    set_print(setA, stdout, intprint);
+
+    printf("\nIntersecting setA and setB into setC\n");
+    set_t * setC = set_intersect(setA, setB);
+
+    printf("\nPrinting setC\n");
+    set_print(setC, stdout, intprint);
+
+    printf("\nDeleting sets A and B\n");
+    set_delete(setA, intdelete);
+    set_delete(setB, intdelete);
+
+    printf("\nDeleting setC\n");
+    set_delete(setC, intdelete);
 
 }

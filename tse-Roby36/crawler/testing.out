@@ -1,0 +1,102 @@
+ml () {  module ml "$@"
+}
+module () {  _module_raw "$@" 2>&1
+}
+_module_raw () {  eval `/usr/bin/tclsh8.6 /usr/lib/x86_64-linux-gnu/modulecmd.tcl bash "$@"`;
+ _mlstatus=$?;
+ return $_mlstatus
+}
+#!/bin/bash
+
+# More than 4 arguments:
+./crawler http://cs50tse.cs.dartmouth.edu/tse/wikipedia/ wikipedia 1 extra_argument
+Usage: ./crawler seedURL pageDirectory maxDepth
+
+# Less than 4 arguments:
+./crawler
+Usage: ./crawler seedURL pageDirectory maxDepth
+
+# Invalid URL:
+./crawler http://cs50tse.cs.dartmoth.edu/tse/wikipedia/ wikipedia 1
+./crawler: External URL
+
+# External URL:
+./crawler https://www.wikipedia.org wikipedia 1
+./crawler: URL could not be normalized; please enter valid URL
+
+# Invalid directory:
+./crawler http://cs50tse.cs.dartmouth.edu/tse/wikipedia/ wikpedia 1
+./crawler: Failed to create .crawler file: please enter valid directory.
+
+# Non-integer maxDepth:
+./crawler http://cs50tse.cs.dartmouth.edu/tse/wikipedia/ wikipedia max
+./crawler: maxDepth must be an integer.
+
+# maxDepth out of range:
+./crawler http://cs50tse.cs.dartmouth.edu/tse/wikipedia/ wikipedia 11
+./crawler: maxDepth must be between [0,10]
+./crawler http://cs50tse.cs.dartmouth.edu/tse/wikipedia/ wikipedia -1
+./crawler: maxDepth must be between [0,10]
+
+# Valgrind test (letters depth 10, logging on):
+valgrind --leak-check=full --show-leak-kinds=all ./crawlerLog http://cs50tse.cs.dartmouth.edu/tse/letters/ letters 10
+valgrind: ./crawlerLog: No such file or directory
+
+# Valgrind test (wikipedia depth 1, logging off):
+valgrind --leak-check=full --show-leak-kinds=all ./crawler http://cs50tse.cs.dartmouth.edu/tse/wikipedia/ wikipedia 1
+==3907196== Memcheck, a memory error detector
+==3907196== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==3907196== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==3907196== Command: ./crawler http://cs50tse.cs.dartmouth.edu/tse/wikipedia/ wikipedia 1
+==3907196== 
+==3907196== 
+==3907196== HEAP SUMMARY:
+==3907196==     in use at exit: 0 bytes in 0 blocks
+==3907196==   total heap usage: 1,486,802 allocs, 1,486,802 frees, 234,198,515,668 bytes allocated
+==3907196== 
+==3907196== All heap blocks were freed -- no leaks are possible
+==3907196== 
+==3907196== For lists of detected and suppressed errors, rerun with: -s
+==3907196== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+
+# Valgrind test (toscrape depth 1, logging off):
+valgrind --leak-check=full --show-leak-kinds=all ./crawler http://cs50tse.cs.dartmouth.edu/tse/toscrape/ toscrape 1
+==3910255== Memcheck, a memory error detector
+==3910255== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==3910255== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==3910255== Command: ./crawler http://cs50tse.cs.dartmouth.edu/tse/toscrape/ toscrape 1
+==3910255== 
+==3910255== 
+==3910255== HEAP SUMMARY:
+==3910255==     in use at exit: 0 bytes in 0 blocks
+==3910255==   total heap usage: 2,351,862 allocs, 2,351,862 frees, 44,057,798,859 bytes allocated
+==3910255== 
+==3910255== All heap blocks were freed -- no leaks are possible
+==3910255== 
+==3910255== For lists of detected and suppressed errors, rerun with: -s
+==3910255== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+
+# Test runs on letters (logging on):
+./crawlerLog http://cs50tse.cs.dartmouth.edu/tse/letters/ letters 0
+./testing.sh: line 35: ./crawlerLog: No such file or directory
+./crawlerLog http://cs50tse.cs.dartmouth.edu/tse/letters/ letters 1
+./testing.sh: line 36: ./crawlerLog: No such file or directory
+./crawlerLog http://cs50tse.cs.dartmouth.edu/tse/letters/ letters 2
+./testing.sh: line 37: ./crawlerLog: No such file or directory
+./crawlerLog http://cs50tse.cs.dartmouth.edu/tse/letters/ letters 10
+./testing.sh: line 38: ./crawlerLog: No such file or directory
+
+# Test runs on toscrape (logging off):
+./crawler http://cs50tse.cs.dartmouth.edu/tse/toscrape/ toscrape 0
+./crawler http://cs50tse.cs.dartmouth.edu/tse/toscrape/ toscrape 1
+# ./crawler http://cs50tse.cs.dartmouth.edu/tse/toscrape/ toscrape 2
+# ./crawler http://cs50tse.cs.dartmouth.edu/tse/toscrape/ toscrape 3
+
+# Test runs on wikipedia (logging off):
+./crawler http://cs50tse.cs.dartmouth.edu/tse/wikipedia/ wikipedia 0
+./crawler http://cs50tse.cs.dartmouth.edu/tse/wikipedia/ wikipedia 1
+# ./crawler http://cs50tse.cs.dartmouth.edu/tse/wikipedia/ wikipedia 2
+
+# Final exit code:
+echo $?
+0

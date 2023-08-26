@@ -1,0 +1,840 @@
+gcc -Wall -pedantic -std=c11 -ggdb  -I../libcs50 -I../common   -c -o fuzzquery.o fuzzquery.c
+gcc -Wall -pedantic -std=c11 -ggdb  -I../libcs50 -I../common fuzzquery.o ../libcs50/libcs50.a -lm -o fuzzquery
+bash -v testing.sh
+module () {  _module_raw "$@" 2>&1
+}
+ml () {  module ml "$@"
+}
+_module_raw () {  eval `/usr/bin/tclsh8.6 /usr/lib/x86_64-linux-gnu/modulecmd.tcl bash "$@"`;
+ _mlstatus=$?;
+ return $_mlstatus
+}
+#!/bin/bash
+
+# Invalid arguments tests:
+
+# Invalid number of arguments:
+./querier
+Usage: ./querier pageDirectory indexFilename
+./querier querier querier querier 
+Usage: ./querier pageDirectory indexFilename
+
+# Invalid pageDirectory (non-existing)
+./querier pageDirectory ../indexer/lettersIndex
+./querier: Please enter a valid pageDirectory marked for crawling.
+
+# pageDirectory not marked for crawling:
+./querier ../indexer ../indexer/lettersIndex
+./querier: Please enter a valid pageDirectory marked for crawling.
+
+# Invalid index file:
+./querier ../crawler/letters ../indexer/letters
+./querier: Error opening ../indexer/letters for reading.
+
+
+# Valid arguments tests:
+
+# Testing invalid queries (toscrape):
+
+echo contractions aren\'t allowed > invalidQuery
+./querier ../crawler/toscrape ../indexer/toscrapeIndex < invalidQuery
+Bad character: '
+
+rm -f invalidQuery
+
+echo n0 numbers > invalidQuery
+./querier ../crawler/toscrape ../indexer/toscrapeIndex < invalidQuery
+Bad character: 0
+
+rm -f invalidQuery
+
+echo no special characters! > invalidQuery
+./querier ../crawler/toscrape ../indexer/toscrapeIndex < invalidQuery
+Bad character: !
+
+rm -f invalidQuery
+
+echo and cannot be first > invalidQuery
+./querier ../crawler/toscrape ../indexer/toscrapeIndex < invalidQuery
+Operator 'and' cannot be first.
+
+rm -f invalidQuery
+
+echo nor last      and > invalidQuery
+./querier ../crawler/toscrape ../indexer/toscrapeIndex < invalidQuery
+Operator 'and' cannot be last.
+
+rm -f invalidQuery
+
+echo no adjacent and or operators > invalidQuery
+./querier ../crawler/toscrape ../indexer/toscrapeIndex < invalidQuery
+Operators 'and'/'or' cannot be adjacent.
+
+rm -f invalidQuery
+
+
+# Testing valid queries (toscrape):
+
+echo sometimes no documents match > testQuery
+./querier ../crawler/toscrape ../indexer/toscrapeIndex < testQuery
+Query: sometimes no documents match 
+No documents match.
+-------------------------------------------------------------------
+
+rm -f testQuery
+
+echo new Hampshire > testQuery
+./querier ../crawler/toscrape ../indexer/toscrapeIndex < testQuery
+Query: new hampshire 
+Matches 1 document(s) (ranked):
+score 1 doc 13: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-black-maria_991/index.html
+-------------------------------------------------------------------
+
+rm -f testQuery
+
+echo where are you from > testQuery
+./querier ../crawler/toscrape ../indexer/toscrapeIndex < testQuery
+Query: where are you from 
+Matches 2 document(s) (ranked):
+score 1 doc 19: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/sharp-objects_997/index.html
+score 1 doc 18: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/sapiens-a-brief-history-of-humankind_996/index.html
+-------------------------------------------------------------------
+
+rm -f testQuery
+
+echo hypochondriac mother > testQuery
+./querier ../crawler/toscrape ../indexer/toscrapeIndex < testQuery
+Query: hypochondriac mother 
+Matches 1 document(s) (ranked):
+score 1 doc 19: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/sharp-objects_997/index.html
+-------------------------------------------------------------------
+
+rm -f testQuery
+
+echo demo website for web scraping purposes > testQuery
+./querier ../crawler/toscrape ../indexer/toscrapeIndex < testQuery
+Query: demo website for web scraping purposes 
+Matches 74 document(s) (ranked):
+score 1 doc 74: http://cs50tse.cs.dartmouth.edu/tse/toscrape/index.html
+score 1 doc 73: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books_1/index.html
+score 1 doc 72: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/travel_2/index.html
+score 1 doc 71: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/mystery_3/index.html
+score 1 doc 70: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/historical-fiction_4/index.html
+score 1 doc 69: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/sequential-art_5/index.html
+score 1 doc 68: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/classics_6/index.html
+score 1 doc 67: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/philosophy_7/index.html
+score 1 doc 66: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/romance_8/index.html
+score 1 doc 65: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/womens-fiction_9/index.html
+score 1 doc 64: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/fiction_10/index.html
+score 1 doc 63: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/childrens_11/index.html
+score 1 doc 62: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/religion_12/index.html
+score 1 doc 61: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/nonfiction_13/index.html
+score 1 doc 60: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/music_14/index.html
+score 1 doc 59: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/default_15/index.html
+score 1 doc 58: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/science-fiction_16/index.html
+score 1 doc 57: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/sports-and-games_17/index.html
+score 1 doc 56: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/add-a-comment_18/index.html
+score 1 doc 55: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/fantasy_19/index.html
+score 1 doc 54: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/new-adult_20/index.html
+score 1 doc 53: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/young-adult_21/index.html
+score 1 doc 52: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/science_22/index.html
+score 1 doc 51: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/poetry_23/index.html
+score 1 doc 50: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/paranormal_24/index.html
+score 1 doc 49: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/art_25/index.html
+score 1 doc 48: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/psychology_26/index.html
+score 1 doc 47: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/autobiography_27/index.html
+score 1 doc 46: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/parenting_28/index.html
+score 1 doc 45: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/adult-fiction_29/index.html
+score 1 doc 44: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/humor_30/index.html
+score 1 doc 43: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/horror_31/index.html
+score 1 doc 42: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/history_32/index.html
+score 1 doc 41: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/food-and-drink_33/index.html
+score 1 doc 40: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/christian-fiction_34/index.html
+score 1 doc 39: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/business_35/index.html
+score 1 doc 38: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/biography_36/index.html
+score 1 doc 37: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/thriller_37/index.html
+score 1 doc 36: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/contemporary_38/index.html
+score 1 doc 35: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/spirituality_39/index.html
+score 1 doc 34: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/academic_40/index.html
+score 1 doc 33: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/self-help_41/index.html
+score 1 doc 32: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/historical_42/index.html
+score 1 doc 31: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/christian_43/index.html
+score 1 doc 30: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/suspense_44/index.html
+score 1 doc 29: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/short-stories_45/index.html
+score 1 doc 28: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/novels_46/index.html
+score 1 doc 27: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/health_47/index.html
+score 1 doc 26: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/politics_48/index.html
+score 1 doc 25: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/cultural_49/index.html
+score 1 doc 24: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/erotica_50/index.html
+score 1 doc 23: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/crime_51/index.html
+score 1 doc 22: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/a-light-in-the-attic_1000/index.html
+score 1 doc 21: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/tipping-the-velvet_999/index.html
+score 1 doc 20: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/soumission_998/index.html
+score 1 doc 19: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/sharp-objects_997/index.html
+score 1 doc 18: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/sapiens-a-brief-history-of-humankind_996/index.html
+score 1 doc 17: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-requiem-red_995/index.html
+score 1 doc 16: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-dirty-little-secrets-of-getting-your-dream-job_994/index.html
+score 1 doc 15: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-coming-woman-a-novel-based-on-the-life-of-the-infamous-feminist-victoria-woodhull_993/index.html
+score 1 doc 14: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-boys-in-the-boat-nine-americans-and-their-epic-quest-for-gold-at-the-1936-berlin-olympics_992/index.html
+score 1 doc 13: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/the-black-maria_991/index.html
+score 1 doc 12: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/starving-hearts-triangular-trade-trilogy-1_990/index.html
+score 1 doc 11: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/shakespeares-sonnets_989/index.html
+score 1 doc 10: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/set-me-free_988/index.html
+score 1 doc 9: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/scott-pilgrims-precious-little-life-scott-pilgrim-1_987/index.html
+score 1 doc 8: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/rip-it-up-and-start-again_986/index.html
+score 1 doc 7: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/our-band-could-be-your-life-scenes-from-the-american-indie-underground-1981-1991_985/index.html
+score 1 doc 6: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/olio_984/index.html
+score 1 doc 5: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/mesaerion-the-best-science-fiction-stories-1800-1849_983/index.html
+score 1 doc 4: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/libertarianism-for-beginners_982/index.html
+score 1 doc 3: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/its-only-the-himalayas_981/index.html
+score 1 doc 2: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/page-2.html
+score 1 doc 1: http://cs50tse.cs.dartmouth.edu/tse/toscrape/
+-------------------------------------------------------------------
+
+rm -f testQuery
+
+echo travel and Himalayas > testQuery
+./querier ../crawler/toscrape ../indexer/toscrapeIndex < testQuery
+Query: travel and himalayas 
+Matches 5 document(s) (ranked):
+score 1 doc 74: http://cs50tse.cs.dartmouth.edu/tse/toscrape/index.html
+score 1 doc 73: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books_1/index.html
+score 1 doc 72: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/travel_2/index.html
+score 1 doc 3: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/its-only-the-himalayas_981/index.html
+score 1 doc 1: http://cs50tse.cs.dartmouth.edu/tse/toscrape/
+-------------------------------------------------------------------
+
+rm -f testQuery
+
+echo travel or Himalayas > testQuery
+./querier ../crawler/toscrape ../indexer/toscrapeIndex < testQuery
+Query: travel or himalayas 
+Matches 55 document(s) (ranked):
+score 5 doc 72: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/travel_2/index.html
+score 5 doc 3: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/its-only-the-himalayas_981/index.html
+score 2 doc 74: http://cs50tse.cs.dartmouth.edu/tse/toscrape/index.html
+score 2 doc 73: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books_1/index.html
+score 2 doc 1: http://cs50tse.cs.dartmouth.edu/tse/toscrape/
+score 1 doc 71: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/mystery_3/index.html
+score 1 doc 70: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/historical-fiction_4/index.html
+score 1 doc 69: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/sequential-art_5/index.html
+score 1 doc 68: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/classics_6/index.html
+score 1 doc 67: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/philosophy_7/index.html
+score 1 doc 66: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/romance_8/index.html
+score 1 doc 65: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/womens-fiction_9/index.html
+score 1 doc 64: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/fiction_10/index.html
+score 1 doc 63: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/childrens_11/index.html
+score 1 doc 62: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/religion_12/index.html
+score 1 doc 61: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/nonfiction_13/index.html
+score 1 doc 60: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/music_14/index.html
+score 1 doc 59: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/default_15/index.html
+score 1 doc 58: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/science-fiction_16/index.html
+score 1 doc 57: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/sports-and-games_17/index.html
+score 1 doc 56: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/add-a-comment_18/index.html
+score 1 doc 55: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/fantasy_19/index.html
+score 1 doc 54: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/new-adult_20/index.html
+score 1 doc 53: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/young-adult_21/index.html
+score 1 doc 52: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/science_22/index.html
+score 1 doc 51: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/poetry_23/index.html
+score 1 doc 50: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/paranormal_24/index.html
+score 1 doc 49: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/art_25/index.html
+score 1 doc 48: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/psychology_26/index.html
+score 1 doc 47: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/autobiography_27/index.html
+score 1 doc 46: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/parenting_28/index.html
+score 1 doc 45: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/adult-fiction_29/index.html
+score 1 doc 44: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/humor_30/index.html
+score 1 doc 43: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/horror_31/index.html
+score 1 doc 42: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/history_32/index.html
+score 1 doc 41: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/food-and-drink_33/index.html
+score 1 doc 40: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/christian-fiction_34/index.html
+score 1 doc 39: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/business_35/index.html
+score 1 doc 38: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/biography_36/index.html
+score 1 doc 37: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/thriller_37/index.html
+score 1 doc 36: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/contemporary_38/index.html
+score 1 doc 35: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/spirituality_39/index.html
+score 1 doc 34: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/academic_40/index.html
+score 1 doc 33: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/self-help_41/index.html
+score 1 doc 32: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/historical_42/index.html
+score 1 doc 31: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/christian_43/index.html
+score 1 doc 30: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/suspense_44/index.html
+score 1 doc 29: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/short-stories_45/index.html
+score 1 doc 28: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/novels_46/index.html
+score 1 doc 27: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/health_47/index.html
+score 1 doc 26: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/politics_48/index.html
+score 1 doc 25: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/cultural_49/index.html
+score 1 doc 24: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/erotica_50/index.html
+score 1 doc 23: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/category/books/crime_51/index.html
+score 1 doc 2: http://cs50tse.cs.dartmouth.edu/tse/toscrape/catalogue/page-2.html
+-------------------------------------------------------------------
+
+rm -f testQuery
+
+# Testing valid queries (wikipedia and valgrind):
+echo where are you from > testQuery
+valgrind --leak-check=full --show-leak-kinds=all ./querier ../crawler/wikipedia/ ../indexer/wikipediaIndex < testQuery 
+==1574953== Memcheck, a memory error detector
+==1574953== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==1574953== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==1574953== Command: ./querier ../crawler/wikipedia/ ../indexer/wikipediaIndex
+==1574953== 
+Query: where are you from 
+Matches 5 document(s) (ranked):
+score 8 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+score 3 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 2 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+score 2 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+score 2 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+-------------------------------------------------------------------
+
+==1574953== 
+==1574953== HEAP SUMMARY:
+==1574953==     in use at exit: 0 bytes in 0 blocks
+==1574953==   total heap usage: 83,304 allocs, 83,304 frees, 3,261,611 bytes allocated
+==1574953== 
+==1574953== All heap blocks were freed -- no leaks are possible
+==1574953== 
+==1574953== For lists of detected and suppressed errors, rerun with: -s
+==1574953== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+rm -f testQuery
+
+echo Computer Science   or    Mathematics and Physics > testQuery
+valgrind --leak-check=full --show-leak-kinds=all ./querier ../crawler/wikipedia/ ../indexer/wikipediaIndex < testQuery
+==1574975== Memcheck, a memory error detector
+==1574975== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==1574975== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==1574975== Command: ./querier ../crawler/wikipedia/ ../indexer/wikipediaIndex
+==1574975== 
+Query: computer science or mathematics and physics 
+Matches 6 document(s) (ranked):
+score 175 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 6 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+score 4 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+score 4 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+score 1 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+score 1 doc 1: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/
+-------------------------------------------------------------------
+
+==1574975== 
+==1574975== HEAP SUMMARY:
+==1574975==     in use at exit: 0 bytes in 0 blocks
+==1574975==   total heap usage: 83,265 allocs, 83,265 frees, 3,269,501 bytes allocated
+==1574975== 
+==1574975== All heap blocks were freed -- no leaks are possible
+==1574975== 
+==1574975== For lists of detected and suppressed errors, rerun with: -s
+==1574975== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+rm -f testQuery
+
+echo Algorithms or Computer Science or coding > testQuery
+valgrind --leak-check=full --show-leak-kinds=all ./querier ../crawler/wikipedia/ ../indexer/wikipediaIndex < testQuery
+==1574995== Memcheck, a memory error detector
+==1574995== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==1574995== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==1574995== Command: ./querier ../crawler/wikipedia/ ../indexer/wikipediaIndex
+==1574995== 
+Query: algorithms or computer science or coding 
+Matches 7 document(s) (ranked):
+score 189 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 22 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+score 17 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+score 5 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+score 3 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+score 1 doc 1: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/
+score 1 doc 5: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Unix.html
+-------------------------------------------------------------------
+
+==1574995== 
+==1574995== HEAP SUMMARY:
+==1574995==     in use at exit: 0 bytes in 0 blocks
+==1574995==   total heap usage: 83,276 allocs, 83,276 frees, 3,278,420 bytes allocated
+==1574995== 
+==1574995== All heap blocks were freed -- no leaks are possible
+==1574995== 
+==1574995== For lists of detected and suppressed errors, rerun with: -s
+==1574995== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+rm -f testQuery
+
+echo Dartmouth College between Vermont and New Hampshire has snow > testQuery
+valgrind --leak-check=full --show-leak-kinds=all ./querier ../crawler/wikipedia/ ../indexer/wikipediaIndex < testQuery
+==1574997== Memcheck, a memory error detector
+==1574997== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==1574997== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==1574997== Command: ./querier ../crawler/wikipedia/ ../indexer/wikipediaIndex
+==1574997== 
+Query: dartmouth college between vermont and new hampshire has snow 
+Matches 1 document(s) (ranked):
+score 2 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+-------------------------------------------------------------------
+
+==1574997== 
+==1574997== HEAP SUMMARY:
+==1574997==     in use at exit: 0 bytes in 0 blocks
+==1574997==   total heap usage: 83,301 allocs, 83,301 frees, 3,226,589 bytes allocated
+==1574997== 
+==1574997== All heap blocks were freed -- no leaks are possible
+==1574997== 
+==1574997== For lists of detected and suppressed errors, rerun with: -s
+==1574997== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+rm -f testQuery
+
+
+# Testing using 100 inputs from fuzzquery (wikipedia and valgrind):
+
+./fuzzquery ../indexer/wikipediaIndex 100 100 > fuzzTest
+./fuzzquery: generating 100 queries from 6506 words
+valgrind --leak-check=full --show-leak-kinds=all ./querier ../crawler/wikipedia/ ../indexer/wikipediaIndex < fuzzTest
+==1575022== Memcheck, a memory error detector
+==1575022== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==1575022== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==1575022== Command: ./querier ../crawler/wikipedia/ ../indexer/wikipediaIndex
+==1575022== 
+Query: holiest automatica and realloc 
+No documents match.
+-------------------------------------------------------------------
+Query: represented augenstein 
+Matches 1 document(s) (ranked):
+score 1 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+-------------------------------------------------------------------
+Query: grand and route 
+No documents match.
+-------------------------------------------------------------------
+Query: beauty and mires and route or january or listing or still 
+Matches 6 document(s) (ranked):
+score 25 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+score 10 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+score 10 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+score 6 doc 5: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Unix.html
+score 5 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 5 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+-------------------------------------------------------------------
+Query: kernel and jaquiss 
+No documents match.
+-------------------------------------------------------------------
+Query: morse wiki or oriented and rumagn 
+Matches 1 document(s) (ranked):
+score 2 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+-------------------------------------------------------------------
+Query: balanced or crowd and parts authentically 
+Matches 2 document(s) (ranked):
+score 3 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+score 2 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+-------------------------------------------------------------------
+Query: executive 
+Matches 1 document(s) (ranked):
+score 2 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+-------------------------------------------------------------------
+Query: franklin avondale or spent advance or fastest and individual 
+Matches 2 document(s) (ranked):
+score 1 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 1 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+-------------------------------------------------------------------
+Query: preparation prize or shownumberswatching or clung economics 
+Matches 6 document(s) (ranked):
+score 2 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+score 1 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 1 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+score 1 doc 5: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Unix.html
+score 1 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+score 1 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+-------------------------------------------------------------------
+Query: focused or american 
+Matches 4 document(s) (ranked):
+score 22 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+score 4 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+score 3 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 2 doc 5: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Unix.html
+-------------------------------------------------------------------
+Query: garaged automated 
+No documents match.
+-------------------------------------------------------------------
+Query: varieties or branches returned or bletchley or dribbled 
+Matches 2 document(s) (ranked):
+score 1 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 1 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+-------------------------------------------------------------------
+Query: philosophy or linking darts logname 
+Matches 2 document(s) (ranked):
+score 6 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 3 doc 5: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Unix.html
+-------------------------------------------------------------------
+Query: raved or decisions preempts 
+No documents match.
+-------------------------------------------------------------------
+Query: necessarily and coleridge 
+No documents match.
+-------------------------------------------------------------------
+Query: trips terminological or crawfordsville seal 
+Matches 1 document(s) (ranked):
+score 1 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+-------------------------------------------------------------------
+Query: theorist references setting imogene beds or babes 
+No documents match.
+-------------------------------------------------------------------
+Query: intuitive and unburned gentrification 
+No documents match.
+-------------------------------------------------------------------
+Query: intervention and contract others 
+No documents match.
+-------------------------------------------------------------------
+Query: dereference hospitable or july seuss symposium copy 
+No documents match.
+-------------------------------------------------------------------
+Query: stdc directory and radically and remained gain abuses 
+No documents match.
+-------------------------------------------------------------------
+Query: automation 
+Matches 1 document(s) (ranked):
+score 2 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+-------------------------------------------------------------------
+Query: hurd and geometry layperson affecting wgbreakframes and formulated 
+No documents match.
+-------------------------------------------------------------------
+Query: grapnels 
+No documents match.
+-------------------------------------------------------------------
+Query: minds compliant historic 
+No documents match.
+-------------------------------------------------------------------
+Query: contiguously and drama topped limits 
+No documents match.
+-------------------------------------------------------------------
+Query: mostly bushy abuses or june and arity and allocate 
+Matches 1 document(s) (ranked):
+score 1 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+-------------------------------------------------------------------
+Query: shirring hovey 
+No documents match.
+-------------------------------------------------------------------
+Query: tamale and skyrocket or inc 
+Matches 6 document(s) (ranked):
+score 5 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+score 5 doc 5: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Unix.html
+score 4 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 2 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+score 1 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+score 1 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+-------------------------------------------------------------------
+Query: rbaycanca stereotype and talk combing closed 
+No documents match.
+-------------------------------------------------------------------
+Query: formatting and wsj wgcategorytreepagecategoryoptions 
+No documents match.
+-------------------------------------------------------------------
+Query: featherweights 
+No documents match.
+-------------------------------------------------------------------
+Query: level 
+Matches 5 document(s) (ranked):
+score 9 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+score 6 doc 5: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Unix.html
+score 2 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 1 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+score 1 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+-------------------------------------------------------------------
+Query: proficiency greek 
+Matches 1 document(s) (ranked):
+score 1 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+-------------------------------------------------------------------
+Query: toilers or deutsch cose and tennessee or grade or apropos 
+Matches 2 document(s) (ranked):
+score 1 doc 5: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Unix.html
+score 1 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+-------------------------------------------------------------------
+Query: qnx and explores and gregory or volatile 
+Matches 1 document(s) (ranked):
+score 1 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+-------------------------------------------------------------------
+Query: prefershttps 
+Matches 6 document(s) (ranked):
+score 1 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 1 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+score 1 doc 5: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Unix.html
+score 1 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+score 1 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+score 1 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+-------------------------------------------------------------------
+Query: frama or saturday moor snow falter 
+Matches 1 document(s) (ranked):
+score 1 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+-------------------------------------------------------------------
+Query: sternest legman or three or tbl changed 
+Matches 6 document(s) (ranked):
+score 8 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+score 4 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 4 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+score 1 doc 5: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Unix.html
+score 1 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+score 1 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+-------------------------------------------------------------------
+Query: linuxjournal cohen multimedia 
+No documents match.
+-------------------------------------------------------------------
+Query: averaged 
+Matches 1 document(s) (ranked):
+score 1 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+-------------------------------------------------------------------
+Query: hypotenuse and stagflation tendency and prepaying or reset and recordings 
+No documents match.
+-------------------------------------------------------------------
+Query: impressionists smoke or came 
+Matches 2 document(s) (ranked):
+score 1 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 1 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+-------------------------------------------------------------------
+Query: committee formulated and technocapitalism or sleep and thelin matchbooks 
+Matches 1 document(s) (ranked):
+score 1 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+-------------------------------------------------------------------
+Query: does bringing 
+Matches 1 document(s) (ranked):
+score 1 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+-------------------------------------------------------------------
+Query: independently scotland crossbred and scholarships summary 
+No documents match.
+-------------------------------------------------------------------
+Query: wizard 
+Matches 6 document(s) (ranked):
+score 2 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 2 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+score 2 doc 5: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Unix.html
+score 2 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+score 2 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+score 2 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+-------------------------------------------------------------------
+Query: escarole kantrowitz and inflexible reproduced and mardi or enumerating 
+Matches 1 document(s) (ranked):
+score 1 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+-------------------------------------------------------------------
+Query: bert or mulder behind arise 
+Matches 1 document(s) (ranked):
+score 2 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+-------------------------------------------------------------------
+Query: mission and scanftree field 
+No documents match.
+-------------------------------------------------------------------
+Query: chapter and weaving or trees 
+Matches 4 document(s) (ranked):
+score 6 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+score 5 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+score 2 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+score 1 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+-------------------------------------------------------------------
+Query: certificates allocator 
+No documents match.
+-------------------------------------------------------------------
+Query: special grad graduation and taqbaylit flurrying 
+No documents match.
+-------------------------------------------------------------------
+Query: masking implications and been compilers treat check 
+No documents match.
+-------------------------------------------------------------------
+Query: casualties legends dissented or svenska 
+Matches 6 document(s) (ranked):
+score 1 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 1 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+score 1 doc 5: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Unix.html
+score 1 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+score 1 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+score 1 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+-------------------------------------------------------------------
+Query: sponsored computability symmetrically parties 
+No documents match.
+-------------------------------------------------------------------
+Query: maintaining restrictions fein fixity translates forward 
+No documents match.
+-------------------------------------------------------------------
+Query: microsystems and graduated and redeployed stylizing 
+No documents match.
+-------------------------------------------------------------------
+Query: germany or hop children germicidal 
+Matches 3 document(s) (ranked):
+score 2 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+score 1 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 1 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+-------------------------------------------------------------------
+Query: quaver or document juniata zend 
+No documents match.
+-------------------------------------------------------------------
+Query: passed and outing corrigenda computing 
+No documents match.
+-------------------------------------------------------------------
+Query: akerman indian 
+Matches 1 document(s) (ranked):
+score 2 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+-------------------------------------------------------------------
+Query: alignment module 
+No documents match.
+-------------------------------------------------------------------
+Query: belonged and conform simulate or schedules or colleges rights 
+Matches 1 document(s) (ranked):
+score 1 doc 5: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Unix.html
+-------------------------------------------------------------------
+Query: dead 
+Matches 2 document(s) (ranked):
+score 23 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+score 6 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+-------------------------------------------------------------------
+Query: unsolved supporting alamitos prevent and dartmouth and export 
+No documents match.
+-------------------------------------------------------------------
+Query: having matariki or typename chore or handles nytimes 
+Matches 2 document(s) (ranked):
+score 2 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+score 1 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+-------------------------------------------------------------------
+Query: cleared pervasive 
+No documents match.
+-------------------------------------------------------------------
+Query: arctic ethics or fill or colleges 
+Matches 4 document(s) (ranked):
+score 30 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+score 2 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 1 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+score 1 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+-------------------------------------------------------------------
+Query: hexagons and greeks or offset 
+Matches 1 document(s) (ranked):
+score 1 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+-------------------------------------------------------------------
+Query: wgguidedtourhelpguiderurl and chattels nelson 
+No documents match.
+-------------------------------------------------------------------
+Query: crucial 
+Matches 1 document(s) (ranked):
+score 2 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+-------------------------------------------------------------------
+Query: cols or zealand stone and frustrated 
+Matches 6 document(s) (ranked):
+score 1 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 1 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+score 1 doc 5: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Unix.html
+score 1 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+score 1 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+score 1 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+-------------------------------------------------------------------
+Query: cnet lions types and wikimediafoundation impositions 
+No documents match.
+-------------------------------------------------------------------
+Query: skivvied tract catheter 
+No documents match.
+-------------------------------------------------------------------
+Query: syntax carryalls offs 
+No documents match.
+-------------------------------------------------------------------
+Query: prevarications and constructs 
+No documents match.
+-------------------------------------------------------------------
+Query: distinction or spread or william and arwu or freshman 
+Matches 5 document(s) (ranked):
+score 8 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+score 2 doc 5: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Unix.html
+score 1 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+score 1 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 1 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+-------------------------------------------------------------------
+Query: aisha critical and fires versions or pseudocode or pulleys 
+Matches 1 document(s) (ranked):
+score 1 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+-------------------------------------------------------------------
+Query: resizing and scores trademark intones plutarch or commented 
+Matches 1 document(s) (ranked):
+score 1 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+-------------------------------------------------------------------
+Query: urinate or regarded utilisation and override righteous and overhead 
+No documents match.
+-------------------------------------------------------------------
+Query: reporter or titans or shortest metadata or callbacks progress 
+Matches 1 document(s) (ranked):
+score 2 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+-------------------------------------------------------------------
+Query: petri faculty 
+Matches 1 document(s) (ranked):
+score 1 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+-------------------------------------------------------------------
+Query: output 
+Matches 4 document(s) (ranked):
+score 4 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+score 1 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 1 doc 5: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Unix.html
+score 1 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+-------------------------------------------------------------------
+Query: edsger complicated act 
+No documents match.
+-------------------------------------------------------------------
+Query: cpu 
+Matches 3 document(s) (ranked):
+score 3 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+score 2 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+score 1 doc 5: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Unix.html
+-------------------------------------------------------------------
+Query: unordered 
+Matches 2 document(s) (ranked):
+score 4 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+score 1 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+-------------------------------------------------------------------
+Query: holds and miniaturize 
+No documents match.
+-------------------------------------------------------------------
+Query: basketball or different and chronicle or semicolon copy 
+Matches 1 document(s) (ranked):
+score 4 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+-------------------------------------------------------------------
+Query: gielan clubhouses 
+No documents match.
+-------------------------------------------------------------------
+Query: indemnified 
+No documents match.
+-------------------------------------------------------------------
+Query: sydney or ford telecommunications and trademarked herself woodbury 
+Matches 1 document(s) (ranked):
+score 1 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+-------------------------------------------------------------------
+Query: joe recursive backyards or derivatives and saving loading 
+Matches 2 document(s) (ranked):
+score 1 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+score 1 doc 5: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Unix.html
+-------------------------------------------------------------------
+Query: statically and sourcebook determinant emili and computes 
+No documents match.
+-------------------------------------------------------------------
+Query: stomping and australian and drastically 
+No documents match.
+-------------------------------------------------------------------
+Query: mistakes and everyone or operator brent steinert 
+No documents match.
+-------------------------------------------------------------------
+Query: abolish or svenska or fisher 
+Matches 6 document(s) (ranked):
+score 3 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+score 1 doc 7: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Computer_science.html
+score 1 doc 6: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./C_(programming_language).html
+score 1 doc 5: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Unix.html
+score 1 doc 3: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Hash_table.html
+score 1 doc 2: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Linked_list.html
+-------------------------------------------------------------------
+Query: zealand associated 
+Matches 1 document(s) (ranked):
+score 2 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+-------------------------------------------------------------------
+Query: directories greater or clinton 
+Matches 2 document(s) (ranked):
+score 1 doc 5: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Unix.html
+score 1 doc 4: http://cs50tse.cs.dartmouth.edu/tse/wikipedia/./Dartmouth_College.html
+-------------------------------------------------------------------
+
+==1575022== 
+==1575022== HEAP SUMMARY:
+==1575022==     in use at exit: 0 bytes in 0 blocks
+==1575022==   total heap usage: 89,395 allocs, 89,395 frees, 4,475,762 bytes allocated
+==1575022== 
+==1575022== All heap blocks were freed -- no leaks are possible
+==1575022== 
+==1575022== For lists of detected and suppressed errors, rerun with: -s
+==1575022== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+rm -f fuzzTest
+
+
+# Final exit code:
+echo $?
+0
+rm -f fuzzquery

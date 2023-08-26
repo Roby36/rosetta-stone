@@ -1,0 +1,179 @@
+#!/bin/bash
+
+# Invalid arguments tests:
+
+# No arguments
+./indexer
+Usage: ./indexer pageDirectory indexFilename
+
+# One argument
+./indexer ../crawler/letters
+Usage: ./indexer pageDirectory indexFilename
+
+# Three or more arguments
+./indexer ../crawler/letters lettersIndex lettersIndex 
+Usage: ./indexer pageDirectory indexFilename
+
+# Invalid page directory (non-existent path)
+./indexer ../crawler/letter lettersIndex
+./indexer: Please enter a valid pageDirectory marked for crawling.
+
+# Invalid page directory (not a crawler directory)
+./indexer ../crawler lettersIndex
+./indexer: Please enter a valid pageDirectory marked for crawling.
+
+# Invalid indexFile (non-existent path)
+./indexer ../crawler/letters ../comon/lettersIndex
+./indexer: Error opening ../comon/lettersIndex for writing.
+
+# Invalid indexFile (read-only directory)
+./indexer ../crawler/letters /thayerfs/home/f004rxq/cs50-dev/shared/examples/bag-unit/lettersIndex
+./indexer: Error opening /thayerfs/home/f004rxq/cs50-dev/shared/examples/bag-unit/lettersIndex for writing.
+
+# Invalid indexFile (existing, read-only file)
+./indexer ../crawler/letters /thayerfs/home/f004rxq/cs50-dev/shared/examples/bag-unit/bag.c
+./indexer: Error opening /thayerfs/home/f004rxq/cs50-dev/shared/examples/bag-unit/bag.c for writing.
+
+
+# Valid arguments tests:
+
+# Using "letters" as pageDirectory:
+# 1) Create index file with indexer (with Valgrind)
+valgrind --leak-check=full --show-leak-kinds=all ./indexer ../crawler/letters ./indexFiles/lettersIndex
+==625611== Memcheck, a memory error detector
+==625611== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==625611== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==625611== Command: ./indexer ../crawler/letters ./indexFiles/lettersIndex
+==625611== 
+==625611== 
+==625611== HEAP SUMMARY:
+==625611==     in use at exit: 0 bytes in 0 blocks
+==625611==   total heap usage: 2,100 allocs, 2,100 frees, 222,790 bytes allocated
+==625611== 
+==625611== All heap blocks were freed -- no leaks are possible
+==625611== 
+==625611== For lists of detected and suppressed errors, rerun with: -s
+==625611== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+
+# 2) Copy index file with indextest (with Valgrind)
+valgrind --leak-check=full --show-leak-kinds=all ./indextest ./indexFiles/lettersIndex ./indexFiles/lettersCopy
+==625651== Memcheck, a memory error detector
+==625651== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==625651== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==625651== Command: ./indextest ./indexFiles/lettersIndex ./indexFiles/lettersCopy
+==625651== 
+==625651== 
+==625651== HEAP SUMMARY:
+==625651==     in use at exit: 0 bytes in 0 blocks
+==625651==   total heap usage: 1,281 allocs, 1,281 frees, 44,691 bytes allocated
+==625651== 
+==625651== All heap blocks were freed -- no leaks are possible
+==625651== 
+==625651== For lists of detected and suppressed errors, rerun with: -s
+==625651== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+
+# 3) Sort both files
+sort ./indexFiles/lettersIndex > ./indexFiles/lettersIndex.sorted
+sort ./indexFiles/lettersCopy > ./indexFiles/lettersCopy.sorted
+
+# 4) Check files for differences (notice that they are equal)
+diff ./indexFiles/lettersIndex.sorted ./indexFiles/lettersCopy.sorted
+echo $?
+0
+
+
+# Repeating the same process with "toscrape" and "wikipedia" page directories:
+
+# Using "toscrape" as pageDirectory:
+# 1) Create index file with indexer (with Valgrind)
+valgrind --leak-check=full --show-leak-kinds=all ./indexer ../crawler/toscrape ./indexFiles/toscrapeIndex
+==625719== Memcheck, a memory error detector
+==625719== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==625719== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==625719== Command: ./indexer ../crawler/toscrape ./indexFiles/toscrapeIndex
+==625719== 
+==625719== 
+==625719== HEAP SUMMARY:
+==625719==     in use at exit: 0 bytes in 0 blocks
+==625719==   total heap usage: 2,387,843 allocs, 2,387,843 frees, 44,059,841,903 bytes allocated
+==625719== 
+==625719== All heap blocks were freed -- no leaks are possible
+==625719== 
+==625719== For lists of detected and suppressed errors, rerun with: -s
+==625719== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+
+# 2) Copy index file with indextest (with Valgrind)
+valgrind --leak-check=full --show-leak-kinds=all ./indextest ./indexFiles/toscrapeIndex ./indexFiles/toscrapeCopy
+==626992== Memcheck, a memory error detector
+==626992== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==626992== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==626992== Command: ./indextest ./indexFiles/toscrapeIndex ./indexFiles/toscrapeCopy
+==626992== 
+==626992== 
+==626992== HEAP SUMMARY:
+==626992==     in use at exit: 0 bytes in 0 blocks
+==626992==   total heap usage: 43,992 allocs, 43,992 frees, 2,060,190 bytes allocated
+==626992== 
+==626992== All heap blocks were freed -- no leaks are possible
+==626992== 
+==626992== For lists of detected and suppressed errors, rerun with: -s
+==626992== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+
+# 3) Sort both files
+sort ./indexFiles/toscrapeIndex > ./indexFiles/toscrapeIndex.sorted
+sort ./indexFiles/toscrapeCopy > ./indexFiles/toscrapeCopy.sorted
+
+# 4) Check files for differences (notice that they are equal)
+diff ./indexFiles/toscrapeIndex.sorted ./indexFiles/toscrapeCopy.sorted
+echo $?
+0
+
+
+# Using "wikipedia" as pageDirectory:
+# 1) Create index file with indexer (with Valgrind)
+valgrind --leak-check=full --show-leak-kinds=all ./indexer ../crawler/wikipedia ./indexFiles/wikipediaIndex
+==627035== Memcheck, a memory error detector
+==627035== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==627035== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==627035== Command: ./indexer ../crawler/wikipedia ./indexFiles/wikipediaIndex
+==627035== 
+==627035== 
+==627035== HEAP SUMMARY:
+==627035==     in use at exit: 0 bytes in 0 blocks
+==627035==   total heap usage: 1,572,400 allocs, 1,572,400 frees, 234,200,717,760 bytes allocated
+==627035== 
+==627035== All heap blocks were freed -- no leaks are possible
+==627035== 
+==627035== For lists of detected and suppressed errors, rerun with: -s
+==627035== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+
+# 2) Copy index file with indextest (with Valgrind)
+valgrind --leak-check=full --show-leak-kinds=all ./indextest ./indexFiles/wikipediaIndex ./indexFiles/wikipediaCopy
+==633378== Memcheck, a memory error detector
+==633378== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==633378== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==633378== Command: ./indextest ./indexFiles/wikipediaIndex ./indexFiles/wikipediaCopy
+==633378== 
+==633378== 
+==633378== HEAP SUMMARY:
+==633378==     in use at exit: 0 bytes in 0 blocks
+==633378==   total heap usage: 77,550 allocs, 77,550 frees, 3,116,739 bytes allocated
+==633378== 
+==633378== All heap blocks were freed -- no leaks are possible
+==633378== 
+==633378== For lists of detected and suppressed errors, rerun with: -s
+==633378== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+
+# 3) Sort both files
+sort ./indexFiles/wikipediaIndex > ./indexFiles/wikipediaIndex.sorted
+sort ./indexFiles/wikipediaCopy > ./indexFiles/wikipediaCopy.sorted
+
+# 4) Check files for differences (notice that they are equal)
+diff ./indexFiles/wikipediaIndex.sorted ./indexFiles/wikipediaCopy.sorted
+echo $?
+0
+
+
+
+
+

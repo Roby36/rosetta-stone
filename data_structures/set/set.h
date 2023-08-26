@@ -109,3 +109,52 @@ extern void set_print(set_t* set, FILE* fp,
  */
 extern void set_delete(set_t* set, void (*itemdelete)(void* item) );
 
+
+/* Utility functions for a set */
+
+/* ******************* set_merge ************************************** */
+/* This function is used to evaluate the union between two sets.
+ *
+ * We assume:
+ *   Caller provides two non-NULL pointers to sets, with integer items.
+ * 
+ * We return:
+ *   Nothing (void).
+ *   
+ * We guarantee:
+ *   The fist set is changed to contain the union of both sets.
+ *   The second set is unchanged.
+ *   
+ * Caller is responsible for:
+ *   Later free'ing the set(s) of required.
+ * 
+ * Imporant:
+ *   The value for each key in the union is given by the SUM of the
+ *   key's values in the original sets.
+ */
+extern void set_merge(set_t* setA, set_t* setB);
+
+/* ******************* set_intersect ************************************** */
+/* This function is used to evaluate the intersection between two sets.
+ *
+ * We assume:
+ *   Caller provides two non-NULL pointers to sets, with integer items.
+ * 
+ * We return:
+ *   A set pointer to a new set containing the intersection of both sets.
+ * 
+ * We guarantee:
+ *   Memory is malloc'd for the newly generated intersection set,
+ *   and both sets are unchanged.
+ *   
+ * Caller is responsible for:
+ *   Later free'ing the newly generated sets, 
+ *   and the other sets if required.
+ *   
+ * Imporant:
+ *   The value for each key in the intersection is given by the MINIMUM 
+ *   of the key's values in the original sets.
+ */
+extern set_t* set_intersect(set_t* setA, set_t* setB);
+
+

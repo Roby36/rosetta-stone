@@ -14,6 +14,11 @@
 .equ s_head, 0
 .equ s_size, 8
 
+/* struct set_intsct_strct */
+.equ sit_setA, 0
+.equ sit_setC, 8
+.equ sit_size, 16
+
 .data
 str0:   .asciz  "(null)"
 str1:   .asciz  "{"
@@ -234,3 +239,104 @@ sd_end:
     ldp x20, x21, [sp], #16
     ldp x29, x30, [sp], #16
     ret
+
+.p2align 2
+_set_merge_helper: // static void set_merge_helper(void* arg, const char* key, void* item)
+    stp x29, x30, [sp, #-16]!
+    stp x20, x21, [sp, #-16]!
+    str x22,      [sp, #-16]!
+
+    mov x20, x0                 // x20 = setA
+    mov x21, x1                 // x21 = key
+    mov x22, x2                 // x22 = B_val
+    bl _set_find                
+    cbz x0, else1
+if1: // if ((A_val = set_find(setA, key)) != NULL)
+    ldr w1, [x22]               // w1 = *B_val
+    ldr w2, [x0]                // w2 = *A_val
+    add w2, w2, w1              
+    str w2, [x0]                // *A_val += *B_val
+    b set_merge_helper_end
+else1:
+    mov x0, #32                 
+    MWRP _malloc, mdbg0, mdbg1  // malloc(sizeof(int))
+    ldr w1, [x22]               // x1 = *B_val
+    str w1, [x0]                // *B_val_copy = *B_val;
+    mov x2, x0
+    mov x1, x21
+    mov x0, x20                 // set_insert(setA, key, B_val_copy);
+    bl _set_insert
+set_merge_helper_end:
+    ldr x22,      [sp], #16
+    ldp x20, x21, [sp], #16
+    ldp x29, x30, [sp], #16
+    ret
+
+.p2align 2
+.globl _set_merge
+_set_merge: // void set_merge(set_t* setA, set_t* setB)
+    stp x29, x30, [sp, #-16]!
+
+    mov x3, x0                      // x3 = setA
+    mov x0, x1                      // x0 = setB
+    mov x1, x3                      // x1 = setA
+    LOAD_ADDR x2, _set_merge_helper // set_iterate(setB, setA, set_merge_helper);
+    bl _set_iterate
+
+    ldp x29, x30, [sp], #16
+    ret
+
+.p2align 2
+_set_intersect_helper:  // void set_intersect_helper(void* arg, const char* key, void* item)
+    stp x29, x30, [sp, #-16]!
+    stp x20, x21, [sp, #-16]!
+    stp x22, x23, [sp, #-16]!
+
+    ldr x20, [x0, #sit_setC]    // x20 = setC
+    mov x21, x2                 // x21 = B_val
+    mov x23, x1                 // x23 = key
+    ldr x0, [x0, #sit_setA]     // x0 = setA
+    bl _set_find
+    cbz x0, set_intersect_helper_end  // if ((A_val = set_find(setA, key)) == NULL) return
+    ldr w22, [x0]               // w22 = *A_val
+    mov x0, #32                 
+    MWRP _malloc, mdbg0, mdbg1  // malloc(sizeof(int))
+    ldr w1, [x21]               // w1 = *B_val
+    cmp w22, w1                 
+    csel w2, w22, w1, lt        
+    str w2, [x0]                // *min = (*A_val < *B_val) ? *A_val ; *B_val
+    mov x2, x0                  // x2 = min
+    mov x1, x23                 // x1 = key
+    mov x0, x20                 // x0 = setC
+    bl _set_insert
+set_intersect_helper_end:
+    ldp x22, x23, [sp], #16
+    ldp x20, x21, [sp], #16
+    ldp x29, x30, [sp], #16
+    ret
+
+.p2align 2
+.globl _set_intersect
+_set_intersect: // set_t* set_intersect(set_t* setA, set_t* setB)
+    stp x29, x30, [sp, #-16]!
+    stp x20, x21, [sp, #-16]!
+    str x22,      [sp, #-16]!
+
+    mov x20, x0                 // x20 = setA
+    mov x21, x1                 // x21 = setB
+    bl _set_new
+    mov x22, x0                 // x22 = setC
+    stp x20, x22, [sp, #-16]!   // Allocate sit on stack
+    mov x0, x21                 // x0 = setB
+    mov x1, sp                  // x1 = &sit
+    LOAD_ADDR x2, _set_intersect_helper // x2 = set_intersect_helper
+    bl _set_iterate
+    add sp, sp, #16             // pop sit from stack
+    mov x0, x22                 // return setC
+
+set_intersect_end:
+    ldr x22,      [sp], #16
+    ldp x20, x21, [sp], #16
+    ldp x29, x30, [sp], #16
+    ret
+
