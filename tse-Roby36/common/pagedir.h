@@ -7,12 +7,16 @@
  * 
  */
 
+#pragma once
+
 #include "webpage.h"
 #include <string.h>
 #include <strings.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+
+#define MAX_CONC_CHAR   16
 
 /* ******************* pagedir_init ********************* */
 /* This function marks a given directory where the 
@@ -87,21 +91,12 @@ void pagedir_save(const webpage_t* page, const char* pageDirectory, const int do
  * a file with a given docID.
  *
  * We assume:
- *   p is a pointer to a character contained in a string representing
- *   the path name which needs to be extended to include the docID.
+ *   p is a malloc'd string
  * 
  * We return:
- *   The function returns nothing but directly extends the path name
- *   with the required docID (finishing the string with '\0').
- *   
- * IMPORTANT:
- *  The string p iterates through must have malloc'd memory 
- *  large enough to hold the extension! Otherwise this function may lead 
- *  to a Segfault error. For example, when used in pagedir_save
- *  this function is given a pointer to memory able to hold up to
- *  10 extra characters (including '\0').
+ *   The function returns the pointer to the extended pathname
  */
-void concatInt(int n, char* p);
+char * concatInt(char* p, int n);
 
 
 /* ******************* buildPath ************************************** */

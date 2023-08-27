@@ -95,6 +95,7 @@ mdbg0:    .asciz  "\ncalling malloc() with %llx\n"
 mdbg1:    .asciz  "\nmalloc() returned %llx"
 fdbg0:    .asciz  "\ncalling free() with %llx\n"
 fdbg1:    .asciz  "\nfree() returned\n"
+rdbg0:    .asciz  "Printing register %d \n"
 
 // assume x0 already loaded for malloc call
 .macro MWRP f, s0, s1 

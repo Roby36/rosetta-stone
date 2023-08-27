@@ -57,9 +57,42 @@ msdiv64_end:
     ldp x29, x30, [sp], #16
     ret
 
+/* Constant division macro 
+ * takes dividend in x0
+ * returns quotient in x0 and remainder in x1  
+ */
+.macro CONST_DIV d, m, n
+    mov x1, #\d                 // x1 = constant divisor; x2 = m
+    ldr x2, =\m
+    smull x3, w0, w2            // x3 = m * dividend
+    asr x3, x3, #\n             // x3 >> n -> resulting quotient
+    mul x4, x3, x1              // x4 = quotient * divisor
+    sub x1, x0, x4              // x1 (remainder) = dividend - quotient * divisor
+    mov x0, x3                  // x0 = quotient
+.endm
+
+/* Divides by constant 193, 
+ * takes dividend in x0
+ * returns quotient in x0 and remainder in x1  
+ * n = 38; m = 0x54e42524   
+ */
+.p2align 2
+_div193:                        
+    CONST_DIV 193, 0x54e42524, 38
+    ret
+
+/* Division by constant 10, 32 bits of precision
+ * takes dividend in x0
+ * returns quotient in x0 and remainder in x1
+ *  n = 34; m = 0x 6666 6667
+ */    
+.p2align 2
+_div10:
+    CONST_DIV 10, 0x66666667, 34
+    ret
 
 /* Testing */
-.equ div_test, 1
+// .equ div_test, 1
 
 .ifdef div_test
 
@@ -67,6 +100,7 @@ msdiv64_end:
 .data
 udiv64_str: .asciz  "udiv64(%d, %d) = (%d, %d)\n"
 sdiv64_str: .asciz  "sdiv64(%d, %d) = (%d, %d)\n"
+div193_str: .asciz  "div193(%d, %d) = (%d, %d)\n"
 
 .equ dividend,  0xface
 .equ divisor,   -0xcab
@@ -80,9 +114,9 @@ _main:
     mov x0, #dividend
     mov x1, #divisor
     stp x0, x1, [sp, #-32]!
-    bl _msdiv64
+    bl _div193
     stp x0, x1, [sp, #16]
-    LOAD_ADDR , sdiv64_str
+    LOAD_ADDR , div193_str
     bl _printf
     add sp, sp, #32
 
