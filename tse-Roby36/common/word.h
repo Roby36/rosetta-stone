@@ -26,3 +26,5 @@
  *   as the original word (which is permanently changed).
  */
 void normalizeWord(char* word);
+
+

@@ -8,9 +8,10 @@ SRC = $(DS)/linked_list/linked_list.c $(DS)/set/set.c $(DS)/hashtable/hash.c $(D
 
 all: crawler
 
-crawler: $(OBJS) $(LLIBS)
-	$(CC) $(CFLAGS) $(OBJS) $(LLIBS) $(LIBS) $(SRC) -o crawler
+crawler: 
+	$(CC) $(CFLAGS) $(SRC) -o crawler
 
 clean:
 	rm -f *~ *.o
+	rm crawler
 	rm -rf *.dSYM

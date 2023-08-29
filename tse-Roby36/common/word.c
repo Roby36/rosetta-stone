@@ -24,3 +24,7 @@ normalizeWord(char* word){
         p++;
     }  
 }
+
+
+
+

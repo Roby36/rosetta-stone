@@ -14,20 +14,13 @@
 #include <strings.h>
 #include <stdlib.h>
 #include "word.h"
-#include "mem.h"
 #include "index.h"
 #include "pagedir.h"
 #include "webpage.h"
-#include "file.h"
-
-
-/****************** Mem module variables ********************/
-int nmalloc = 0;         
-int nfree = 0;           
-int nfreenull = 0;      
+#include "file.h"    
 
 /****************** Global constants ********************/
-const int MAX_INDEX_SLOTS = 1000;
+static const int MAX_INDEX_SLOTS = 1000;
 
 /* ******************* parseArgs ************************************** */
 /* This function validates command-line arguments.
@@ -78,7 +71,6 @@ static index_t* indexBuild(char* pageDirectory);
  */
 static void indexPage(index_t* index, webpage_t* webpage, int docID);
 
-
 int main(const int argc, char* argv[]){
 
     char* pageDirectory;
@@ -91,12 +83,8 @@ int main(const int argc, char* argv[]){
 
     fclose(fp);
     index_delete(index);
-    mem_free(pageDirectory);
-    mem_free(indexFilename);
-
-    #ifdef MEM_TEST
-    mem_report(stdout,"End of main in indexer.c");
-    #endif
+    free(pageDirectory);
+    free(indexFilename);
 
     return 0;
 }
@@ -116,7 +104,7 @@ parseArgs(const int argc, char* argv[], char** pageDirectory, char** indexFilena
         exit(2);
     }
 
-    *pageDirectory = mem_malloc_assert(strlen(argv[1])+1,"pageDirectory");
+    *pageDirectory = malloc(strlen(argv[1])+1);
     strcpy(*pageDirectory,argv[1]);
 
     FILE* fp = fopen(argv[2],"w");
@@ -126,7 +114,7 @@ parseArgs(const int argc, char* argv[], char** pageDirectory, char** indexFilena
     }
     fclose(fp);
 
-    *indexFilename = mem_malloc_assert(strlen(argv[2])+1,"indexFilename");
+    *indexFilename = malloc(strlen(argv[2])+1);
     strcpy(*indexFilename,argv[2]);
 }
 
@@ -143,9 +131,9 @@ indexBuild(char* pageDirectory){
     FILE* fp;
     webpage_t* webpage;
 
-    char* pathName = buildPath(pageDirectory,docID);
+    char* pathName = buildPath(pageDirectory, docID);
     
-    while ( (fp = fopen(pathName,"r")) != NULL ){
+    while ( (fp = fopen(pathName,"r")) != NULL ) {
 
         char* url = file_readLine(fp); 
         char* depth = file_readLine(fp); 
@@ -154,25 +142,25 @@ indexBuild(char* pageDirectory){
             fprintf(stderr,"buildPath: Error reading depth for %s", pathName);
             continue;
         }
-        mem_free(depth);
+        free(depth);
         char* html = file_readFile(fp);
         
         webpage = webpage_new(url, depthInt, html);
         if (webpage != NULL) {
             indexPage(index, webpage, docID);
-        } else{
+        } else {
             fprintf(stderr,"buildPath: Error loading webpage for %s", pathName);
         }
 
         webpage_delete( (webpage_t*) webpage);
-        mem_free(pathName);
+        free(pathName);
         fclose(fp);
 
         docID++;
         pathName = buildPath(pageDirectory, docID);
     }
 
-    mem_free(pathName);
+    free(pathName);
     return index; 
 }
 
@@ -193,7 +181,7 @@ indexPage(index_t* index, webpage_t* webpage, int docID){
          normalizeWord(word);
          index_add(index,word,docID);
         }
-        mem_free(word);
+        free(word);
     }
 }
 

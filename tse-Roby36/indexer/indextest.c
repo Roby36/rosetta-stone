@@ -15,15 +15,8 @@
 #include <strings.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "mem.h"
 #include "index.h"
 #include "file.h"
-
-
-/****************** Mem module variables ********************/
-int nmalloc = 0;         
-int nfree = 0;           
-int nfreenull = 0;      
 
 /* ******************* parseArgs ************************************** */
 /* This function validates the command line arguments.
@@ -61,12 +54,8 @@ int main(const int argc, char* argv[]){
 
     index_delete(index);
     if (fp != NULL) { fclose(fp); }
-    mem_free(oldIndexFilename);
-    mem_free(newIndexFilename);
-
-    #ifdef MEM_TEST
-    mem_report(stdout,"End of main in indextest.c");
-    #endif
+    free(oldIndexFilename);
+    free(newIndexFilename);
 
     return 0;
 }
@@ -81,8 +70,8 @@ parseArgs(const int argc, char* argv[], char** oldIndexFilename, char** newIndex
     exit(1);
     }
 
-    *oldIndexFilename = mem_malloc_assert(strlen(argv[1])+1, "oldIndexFilename");
-    *newIndexFilename = mem_malloc_assert(strlen(argv[2])+1, "newIndexFilename");
+    *oldIndexFilename = malloc(strlen(argv[1])+1);
+    *newIndexFilename = malloc(strlen(argv[2])+1);
 
     strcpy(*oldIndexFilename,argv[1]);
     strcpy(*newIndexFilename,argv[2]);

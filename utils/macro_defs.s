@@ -115,6 +115,7 @@ rdbg0:    .asciz  "Printing register %d \n"
 .endif
 .endm
 
+/** CAREFUL: All the registers except x0 and x will be corrupted due to function call !!! */
 .macro RWRP x=x0, s
 .ifdef RDBG
     str x0, [sp, #-16]!

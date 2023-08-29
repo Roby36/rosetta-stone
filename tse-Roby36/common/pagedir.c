@@ -50,12 +50,10 @@ pagedir_test(const char* pageDirectory, char* fileName){
 void 
 pagedir_save(const webpage_t* page, const char* pageDirectory, const int docID){
 
-    char* pathName = malloc(strlen(pageDirectory) + 10);
+    char* pathName = malloc(strlen(pageDirectory) + 1);
     strcpy(pathName, pageDirectory);
 
-    char* p = pathName;
-
-    p = concatInt(p, docID);
+    pathName = concatInt(pathName, docID);
 
     FILE* fp;
     if ((fp = fopen(pathName,"w")) == NULL) { 
@@ -73,7 +71,6 @@ pagedir_save(const webpage_t* page, const char* pageDirectory, const int docID){
 
 /**************** concatInt ****************/
 /* see pagedir.h for description */
-/*
 char *
 concatInt(char* p, int n) {
 
@@ -101,7 +98,6 @@ concatInt(char* p, int n) {
     // Return pointer to new string 
     return r;
 }
-*/
 
 /**************** buildPath ****************/
 /* see pagedir.h for description */
@@ -110,13 +106,14 @@ buildPath(const char* pageDirectory, int docID){
 
     if (pageDirectory == NULL) {return NULL;}
 
-    char* pathName = malloc(strlen(pageDirectory) + 10);
-    strcpy(pathName,pageDirectory);
-    char* p = pathName;
-    p = concatInt(p, docID);
+    char* pathName = malloc(strlen(pageDirectory) + 1);
+    strcpy(pathName, pageDirectory);
+    pathName = concatInt(pathName, docID);
 
     return pathName;
 }
+
+#ifdef PAGEDIR_TEST
 
 static void concatInt_test() {
 
@@ -131,8 +128,6 @@ static void concatInt_test() {
     printf("Resulting string: %s\n", test_pagedir);
     free(test_pagedir);
 }
-
-#ifdef PAGEDIR_TEST
 
 int main() {
 

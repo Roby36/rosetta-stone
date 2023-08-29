@@ -16,7 +16,6 @@
 #include <stdlib.h>
 #include "hashtable.h"
 #include "counters.h"
-#include "index.h"
 #include "file.h"
 
 /**************** global types ****************/

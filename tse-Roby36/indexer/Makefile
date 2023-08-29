@@ -1,29 +1,21 @@
 
-L = ../libcs50
 C = ../common
+DS = ../../data_structures
 
 CC = gcc
 
-# CS50_TEST = -DWORD_TEST
-# MEM_TEST = -DMEM_TEST
-
-CFLAGS = -Wall -pedantic -std=c11 -ggdb $(MEM_TEST) $(CS50_TEST) -I$L -I$C
-LIBS = -lm
-CLIBS = $C/common.a
-LLIBS = $L/libcs50.a
+CFLAGS = -Wall -pedantic -std=c11 -g -I$C -I$(DS) -I$(DS)/hashtable -I$(DS)/set -I$(DS)/counters
+SRC = $C/index.c $C/word.c  $(DS)/counters/counters.c $(DS)/set/set.c $(DS)/hashtable/hash.c $(DS)/hashtable/hashtable.c $C/file.c $C/webpage.c $C/pagedir.c
 
 .PHONY: all indexer indextest test clean 
 
 all: indexer indextest
 
-indexer: indexer.o $(LLIBS) $(CLIBS)
-	$(CC) $(CFLAGS) indexer.o $(CLIBS) $(LLIBS) $(LIBS) -o indexer
+indexer: 
+	$(CC) $(CFLAGS) $(SRC) indexer.c  -o indexer
 
-indextest: indextest.o $(LLIBS) $(CLIBS)
-	$(CC) $(CFLAGS) indextest.o $(CLIBS) $(LLIBS) $(LIBS) -o indextest
-
-indexer.o: indexer.c $C/index.h $C/pagedir.h $L/mem.h $L/webpage.h $L/file.h
-indextest.o: indextest.c $L/mem.h $C/index.h $L/file.h
+indextest: 
+	$(CC) $(CFLAGS) $(SRC) indextest.c -o indextest
 
 test: indexer indextest testing.sh
 	make
