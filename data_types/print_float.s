@@ -1,7 +1,7 @@
 
 .data
 my_float:   .float  1.6965753
-my_str:     .asciz  "my_float value: %f %d\n"
+my_str:     .asciz  "my_float value; %f %d\n"
 
 .include "../utils/macro_defs.s"
 
