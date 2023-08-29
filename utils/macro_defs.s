@@ -115,15 +115,23 @@ rdbg0:    .asciz  "Printing register %d \n"
 .endif
 .endm
 
-/** CAREFUL: All the registers except x0 and x will be corrupted due to function call !!! */
 .macro RWRP x=x0, s
 .ifdef RDBG
-    str x0, [sp, #-16]!
-    str \x, [sp, #-16]!
+/* Saves & restores volatile registers x0-x8 */
+    stp x1, x2, [sp, #-16]!
+    stp x3, x4, [sp, #-16]!
+    stp x5, x6, [sp, #-16]!
+    stp x7, x8, [sp, #-16]!
+
+    stp x0, \x [sp, #-16]!
     LOAD_ADDR x0, \s
     bl _printf
-    ldr \x, [sp], #16 // restore register values
-    ldr x0, [sp], #16
+    ldp x0, \x [sp], #16
+
+    ldp x7, x8, [sp], #16
+    ldp x5, x6, [sp], #16
+    ldp x3, x4, [sp], #16
+    ldp x1, x2, [sp], #16
 .endif
 .endm
 
