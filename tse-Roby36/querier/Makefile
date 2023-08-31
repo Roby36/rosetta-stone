@@ -1,32 +1,28 @@
-L = ../libcs50
-C = ../common
 
+C = ../common
+DS = ../../data_structures
 CC = gcc
 
-# MEM_TEST = -DMEM_TEST
+CFLAGS = -I$C -I$(DS) -I$(DS)/hashtable -I$(DS)/set -I$(DS)/counters
+SRC = $C/index.c $C/word.c  $(DS)/counters/counters.c $(DS)/set/set.c $(DS)/hashtable/hash.c $(DS)/hashtable/hashtable.c $C/file.c $C/webpage.c $C/pagedir.c
 
-CFLAGS = -Wall -pedantic -std=c11 -ggdb $(MEM_TEST) -I$L -I$C
-LIBS = -lm
-CLIBS = $C/common.a
-LLIBS = $L/libcs50.a
 
 .PHONY: all querier test
 
 all: querier
 
-querier: querier.o $(LLIBS) $(CLIBS)
-	$(CC) $(CFLAGS) querier.o $(CLIBS) $(LLIBS) $(LIBS) -o querier
+querier: 
+	$(CC) $(CFLAGS) $(SRC) -g querier.c -o querier
 
+querier_asm: 
+	$(CC) $(CFLAGS) $(SRC) -g querier.c querier.s -o querier_asm
 
-test: fuzzquery.o $(LLIBS)
+test: 
 	$(CC) $(CFLAGS) fuzzquery.o $(LLIBS) $(LIBS) -o fuzzquery
 	bash -v testing.sh
 	rm -f fuzzquery
 
-
-querier.o: querier.c $C/index.h $C/word.h $L/file.h $C/pagedir.h $L/mem.h $L/set.h
-fuzzquery.o: $L/file.h $L/mem.h
-
 clean:
+	rm -f querier_asm
 	rm -f *~ *.o
 	rm -rf *.dSYM

@@ -123,10 +123,10 @@ rdbg0:    .asciz  "Printing register %d \n"
     stp x5, x6, [sp, #-16]!
     stp x7, x8, [sp, #-16]!
 
-    stp x0, \x [sp, #-16]!
+    stp \x, x0, [sp, #-16]!
     LOAD_ADDR x0, \s
     bl _printf
-    ldp x0, \x [sp], #16
+    ldp \x, x0, [sp], #16
 
     ldp x7, x8, [sp], #16
     ldp x5, x6, [sp], #16
