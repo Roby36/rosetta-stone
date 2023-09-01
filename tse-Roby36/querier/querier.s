@@ -299,13 +299,11 @@ Query_end:
 _parseInt:
     stp x29, x30, [sp, #-16]!
     stp x20, x21, [sp, #-16]!
-    str x22,      [sp, #-16]!
 
     mov x20, x0                 // x20 = directory
     stp xzr, xzr, [sp, #-16]!
     mov x21, sp                 // x21 = int_str[]
-    str xzr, [sp, #-16]!
-    mov x22, sp                 // x22 = &num 
+    str xzr, [sp, #-16]!        // sp = &num 
     mov x0, x20                 // strlen(directory)
     bl _strlen 
     add x2, x20, x0             // x2 = p = &directory[strlen(directory)]
@@ -326,13 +324,12 @@ loop8:  // while (*p != '\0')
     b loop8
 loop8_end:
     mov x0, x21 
-    mov x1, x22                 // str2int(int_str, &num);
+    mov x1, sp                  // str2int(int_str, num)               
     bl _str2int
-    ldr x0, [x22]               // return num
+    ldr x0, [sp]                // return num
 
 parseInt_end:
     add sp, sp, #32             // pop int_str and &num from stack
-    ldr x22,      [sp], #16
     ldp x20, x21, [sp], #16
     ldp x29, x30, [sp], #16
     ret
@@ -634,28 +631,18 @@ printRanked_end:
 
 .p2align 2 
 _findmax:
-    stp x29, x30, [sp, #-16]!
-
     ldr w3, [x0]                // w3 = *max
     ldr w4, [x2]                // w4 = *num 
     cmp w4, w3                  
     csel w5, w4, w3, ge         // w5 = (*num > *max) ? *num ; *max
     str w5, [x0]                // *max = w5
-
-findmax_end:
-    ldp x29, x30, [sp], #16
     ret 
 
 .p2align 2
 _findsize:
-    stp x29, x30, [sp, #-16]!
-
     ldr w3, [x0]                // w3 = *size 
     add w3, w3, #1              // w3 = w3 + 1
     str w3, [x0]                // *size = w3
-
-findsize_end:
-    ldp x29, x30, [sp], #16
     ret 
 
 .p2align 2
@@ -764,5 +751,3 @@ main_end:
     ldp x20, x21, [sp], #16
     ldp x29, x30, [sp], #16
     ret
-
-
