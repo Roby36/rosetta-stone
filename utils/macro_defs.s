@@ -135,6 +135,11 @@ rdbg0:    .asciz  "Printing register %d \n"
 .endif
 .endm
 
+
+
+
+
+
 .macro FPRINTF_STR fpr, s
     mov x0, \fpr          
     LOAD_ADDR x1, \s

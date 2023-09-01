@@ -2,9 +2,10 @@
 
 #include "querier.h"
 
-index_t* 
-parseArgs(const int argc, char* argv[], char** pageDirectory){
 
+index_t* 
+parseArgs(const int argc, char* argv[], char** pageDirectory)
+{
     const char* progName = argv[0];
 
     if (argc != 3) {
@@ -12,8 +13,8 @@ parseArgs(const int argc, char* argv[], char** pageDirectory){
         exit(1);
     }
 
-    if (!pagedir_test(argv[1],"/.crawler") || !pagedir_test(argv[1],"/1")){
-        fprintf(stderr,"%s: Please enter a valid pageDirectory marked for crawling.\n",progName);
+    if (!pagedir_test(argv[1], "/.crawler") || !pagedir_test(argv[1], "/1")){
+        fprintf(stderr,"%s: Please enter a valid pageDirectory marked for crawling.\n", progName);
         exit(2);
     }
 
@@ -24,11 +25,13 @@ parseArgs(const int argc, char* argv[], char** pageDirectory){
 
     if (index == NULL){
         free(*pageDirectory);
-        fprintf(stderr, "%s: Error opening %s for reading.\n",progName,argv[2]);
+        fprintf(stderr, "%s: Error opening %s for reading.\n", progName, argv[2]);
         exit(3);
     }
     return index;
 }
+
+
 
 bool 
 newQuery(char query[]) {
@@ -41,11 +44,10 @@ newQuery(char query[]) {
 }
 
 
-/*
+
 int
 tokenize(char query[], char* words[])
 {
-
     if (query == NULL) 
         return -1;
 
@@ -87,18 +89,20 @@ tokenize(char query[], char* words[])
         *(p++) = '\0'; //Truncate word by setting first space encountered to null character
     }
 }
-*/
+
+
 
 void 
 printQuery(char* words[], int wordNo){
     printf("Query: ");
     for (int i = 0; i < wordNo - 1; i++){
         printf("%s ", words[i]);
-        }
+    }
     printf("%s \n", words[wordNo-1]);
 }
 
-/*
+
+
 void take_set_intersection(char* pageDirectory, index_t* index, char* words[], 
                                 set_t** currIntp, int currWordNo, int andIt)
 {
@@ -134,14 +138,15 @@ void take_set_intersection(char* pageDirectory, index_t* index, char* words[],
     // Clean up temporary set holding scores for given word
     set_delete(wordScores, itemdelete);
 }
-*/
+
+
 
 void print_query_results(set_t * currUnion)
 {
     int max = 0;
     int size = 0; 
-    set_iterate(currUnion, &max, findmax);
-    set_iterate(currUnion, &size,findsize);
+    set_iterate(currUnion, &max,  findmax);
+    set_iterate(currUnion, &size, findsize);
 
     if (max == 0) {
         printf("No documents match.\n");
@@ -156,7 +161,8 @@ void print_query_results(set_t * currUnion)
     printf("-------------------------------------------------------------------\n");
 }
 
-/*
+
+
 bool validate_query(char* pageDirectory, index_t* index, char* words[], int wordNo)
 {
 // Checking for NULL pointers 
@@ -168,6 +174,8 @@ bool validate_query(char* pageDirectory, index_t* index, char* words[], int word
         return false;
     }
 // Checking for "and" & "or" operators at the end 
+/** ERROR: Bad memory access words[wordNo - 1]: 
+ * doesn't segfault probably because compiler allocates a copy of words[] on the stack...  */
     if ( strcmp(words[wordNo - 1], "and") == 0 || strcmp(words[wordNo - 1], "or") == 0){
         fprintf(stderr, "Operator '%s' cannot be last.\n", words[wordNo - 1]);
         return false;
@@ -184,9 +192,9 @@ bool validate_query(char* pageDirectory, index_t* index, char* words[], int word
 // Return true if no query invalidities 
     return true;
 }
-*/
 
-/*
+
+
 bool 
 Query(char* pageDirectory, index_t* index, char* words[], int wordNo) {
 
@@ -228,7 +236,6 @@ Query(char* pageDirectory, index_t* index, char* words[], int wordNo) {
     set_delete(currUnion, itemdelete);
     return true;
 }
-*/ 
 
 void printRanked(void* arg, const char*key, void* item){
     
@@ -245,7 +252,6 @@ void printRanked(void* arg, const char*key, void* item){
     fclose(fp);
 }
 
-/*
 int parseInt(char* directory)
 {
     char int_str[MAXINTDIGITS];
@@ -269,18 +275,18 @@ int parseInt(char* directory)
     str2int(int_str, &num);
     return num;
 }
-*/
 
 void 
-findmax(void* arg, const char*key, void* item){
+findmax(void* arg, const char* key, void* item){
     int * max = arg;
     int * num = item;
     *max = (*num > *max) ? *num : *max;
 }
 
+
 void 
-findsize(void* arg, const char*key, void* item){
-    int* size = arg;
+findsize(void* arg, const char* key, void* item){
+    int * size = arg;
     *size = *size + 1;
 }
 
@@ -293,7 +299,7 @@ prompt(void){
 
 int* 
 intsave(int item) {
-  int* saved = malloc(sizeof(int));
+  int * saved = malloc(sizeof(int));
   *saved = item;
   return saved;
 }
@@ -302,6 +308,20 @@ void
 itemdelete(void* item) {
   if (item != NULL)
     free(item);
+}
+
+void 
+normalizeWord(char* word){
+
+    if (word == NULL)
+        return; 
+
+    char* p = word;
+
+    while (*p != '\0') {
+        *p = tolower(*p);
+        p++;
+    }  
 }
 
 /******************* Main program starts here **************************/
@@ -317,7 +337,7 @@ int main(const int argc, char* argv[]) {
     while (newQuery(query)) {
 
         char* words[(int)(strlen(query)/2) + 1];
-        int wordNo = tokenize(query,words);
+        int wordNo = tokenize(query, words);
 
         if (wordNo == -1) 
             continue;

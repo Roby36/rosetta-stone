@@ -4,6 +4,7 @@
 .equ RDBG, 1
 
 .equ MAXDOCUMENTS, 128
+.equ MAXQUERYCHARS, 1024
 
 .data
 bc_str:   .asciz  "Bad character; %c\n"
@@ -15,6 +16,20 @@ or_str:     .asciz  "or"
 err_str0:   .asciz  "Operator '%s' cannot be first.\n"
 err_str1:   .asciz  "Operator '%s' cannot be last.\n"
 err_str2:   .asciz  "Operators '%s'/'%s' cannot be adjacent.\n"
+ex_str0:    .asciz  "Usage; %s pageDirectory indexFilename\n"
+ex_str1:    .asciz  "%s; Please enter a valid pageDirectory marked for crawling.\n"
+ex_str2:    .asciz  "%s; Error opening %s for reading.\n"
+t_str0:     .asciz  "/.crawler"
+t_str1:     .asciz  "/1"
+q_str0:     .asciz  "Query; "
+q_str1:     .asciz  "%s "
+nl_str:     .asciz  "\n"
+endq_str:   .asciz  "-------------------------------------------------------------------\n"
+emptyq_str: .asciz  "No documents match.\n"
+succq_str:  .asciz  "Matches %d document(s) (ranked);\n"
+ds_str:     .asciz  "score %d doc %d; %s\n"
+r_str:      .asciz  "r"
+qm_str:     .asciz  "Query? "
 
 .text
 .p2align 2
@@ -40,6 +55,30 @@ is_alpha_end:
     ldp x29, x30, [sp], #16
     ret
 
+.p2align 2
+_normalizeWord:
+    stp x29, x30, [sp, #-16]!
+
+    cbz x0, normalizeWord_end   // if (word == NULL) return
+loop14: // while (*p != '\0')
+    ldrb w3, [x0]               // w3 = *p            
+    cmp w3, wzr 
+    beq normalizeWord_end
+    // leave *p unchanged if not between 'A' and 'Z' 
+    cmp w3, 'A'
+    blo loop14_p_inc            
+    cmp w3, 'Z'
+    bhi loop14_p_inc
+    // if *p between 'A' and 'Z', increment by 32
+    add w3, w3, #32
+    strb w3, [x0]               // *p = w3
+loop14_p_inc:
+    add x0, x0, #1              // p++
+    b loop14 
+
+normalizeWord_end:
+    ldp x29, x30, [sp], #16
+    ret 
 
 .p2align 2
 .globl _tokenize
@@ -300,7 +339,7 @@ parseInt_end:
 
 .globl _validate_query
 .macro STRCMP_AND_OR wreg, rreg
-/* Assumes wreg, rreg non-voltile */
+// Assumes wreg, rreg non-voltile 
     mov x0, \wreg
     LOAD_ADDR x1, and_str
     bl _strcmp 
@@ -311,7 +350,7 @@ parseInt_end:
     mul \rreg, \rreg, x0 
 .endm
 .macro PRINT_ERR_N_RET w1reg, w2reg, err_str
-/* Assumes wreg non-voltile */
+// Assumes wreg non-voltile 
     LOAD_CONT_GOT x0, ___stderrp
     ldr x0, [x0]
     LOAD_ADDR x1, \err_str
@@ -332,6 +371,7 @@ _validate_query:
     cbz x1, validate_query_false_ret
     cbz x2, validate_query_false_ret
     tbnz w3, #31, validate_query_false_ret
+    cbz w3, loop9_end                       // if (wordNo == 0) return true
 
     mov x20, x2                             // x20 = words[]
     mov w21, w3                             // w21 = wordNo
@@ -343,7 +383,7 @@ if3:    // fprintf(stderr, "Operator '%s' cannot be first.\n", words[0]);
     PRINT_ERR_N_RET x22, xzr, err_str0
 endif3:
     sub w8, w21, #1                         // w8 = wordNo - 1
-    ldr x22, [x20, x8, lsl #3]              // x22 = wordNo[wordNo - 1]
+    ldr x22, [x20, x8, lsl #3]              // x22 = words[wordNo - 1]
     STRCMP_AND_OR x22, x19
     cbz x19, if4
     b endif4 
@@ -381,4 +421,348 @@ validate_query_end:
     ldp x19, x20, [sp], #16
     ldp x29, x30, [sp], #16
     ret
+
+
+.globl _parseArgs
+.macro PRINT_ERR_N_EXIT ex_str, ex_val
+    LOAD_CONT_GOT x0, ___stderrp
+    ldr x0, [x0]
+    LOAD_ADDR x1, \ex_str
+    stp x23, x4, [sp, #-16]!         // push progName (& argv[2]) to stack
+    bl _fprintf
+    add sp, sp, #16
+    mov x0, #\ex_val                // fill-up exit code
+    bl _exit
+    // go to end of subroutine anyway
+    b parseArgs_end                
+.endm
+.macro PAGEDIR_TEST_STR t_str
+    ldr x0, [x21, #8]               // x0 = argv[1]
+    LOAD_ADDR x1, \t_str 
+    bl _pagedir_test
+.endm
+.p2align 2
+_parseArgs: // index_t * parseArgs(const int argc, char* argv[], char** pageDirectory)
+    stp x29, x30, [sp, #-16]!
+    stp x21, x22, [sp, #-16]!
+    str x23,      [sp, #-16]!
+
+    mov x21, x1                     // x21 = argv[]
+    mov x22, x2                     // x22 = pageDirectory
+    ldr x23, [x21]                  // x23 = progName = argv[0]
+    cmp w0, #3                      // if (argc != 3)
+    beq endif6
+    PRINT_ERR_N_EXIT ex_str0, 1     // fprintf (stderr, "Usage; %s pageDirectory indexFilename\n", progName); exit(1);
+endif6:
+    PAGEDIR_TEST_STR t_str0
+    tbz w0, #0, if7                 // if (!pagedir_test(argv[1], "/.crawler"))
+    PAGEDIR_TEST_STR t_str1 
+    tbz w0, #0, if7
+    b endif7
+if7:
+    PRINT_ERR_N_EXIT ex_str1, 2     // fprintf(stderr,"%s; Please enter a valid pageDirectory marked for crawling.\n",progName); exit(2)
+endif7:
+    ldr x0, [x21, #8]               // strlen(argv[1])
+    bl _strlen
+    add x0, x0, #1
+    MWRP _malloc, mdbg0, mdbg1      // malloc(strlen(argv[1]) + 1)
+    str x0, [x22]                   // *pageDirectory = malloc(strlen(argv[1]) + 1);
+    ldr x0, [x22]
+    ldr x1, [x21, #8]               // strcpy(*pageDirectory,argv[1]);
+    bl _strcpy 
+    ldr x0, [x21, #16]              // loadIndex(argv[2])
+    bl _loadIndex
+    cbnz x0, parseArgs_end          // if (index != NULL) return index
+    ldr x0, [x22]
+    MWRP _free, fdbg0, fdbg1        // free(*pageDirectory)
+    ldr x4, [x21, #16]              // x4 = argv[2] (will be pushed on stack by macro)
+    PRINT_ERR_N_EXIT ex_str2, 3     // fprintf(stderr, "%s; Error opening %s for reading.\n", progName, argv[2]); exit(3);
+
+parseArgs_end:
+    ldr x23,      [sp], #16
+    ldp x21, x22, [sp], #16
+    ldp x29, x30, [sp], #16
+    ret
+
+.globl _newQuery
+.p2align 2
+_newQuery:
+    stp x29, x30, [sp, #-16]!
+    str x20,      [sp, #-16]!
+
+    mov x20, x0                 // x20 = query
+    bl _prompt 
+    mov x0, x20 
+    mov w1, #MAXQUERYCHARS
+    LOAD_CONT_GOT x2, ___stdinp 
+    ldr x2, [x2]                // fgets(query, QUERYMAXCHARACTERS, stdin)
+    bl _fgets  
+    cbz x0, newQuery_end        // return false
+    mov w0, #1                  // return true           
+
+newQuery_end:
+    ldr x20,      [sp], #16
+    ldp x29, x30, [sp], #16
+    ret
+
+.globl _printQuery
+.p2align 2
+_printQuery: 
+    stp x29, x30, [sp, #-16]!
+    stp x20, x21, [sp, #-16]!
+    str x22,      [sp, #-16]!
+
+    mov x20, x0                 // x20 = words[]
+    mov w21, w1                 // w21 = wordNo 
+    LOAD_ADDR x0, q_str0        // printf("Query; ")
+    bl _printf
+    mov w22, wzr                // w22 = i
+loop10:
+    cmp w22, w21                // if (i >= wordNo) break loop
+    bge loop10_end 
+    LOAD_ADDR x0, q_str1       
+    ldr x1, [x20, x22, lsl #3]  
+    str x1, [sp, #-16]!         // printf("%s ", words[i])
+    bl _printf 
+    add sp, sp, #16
+    add w22, w22, #1            // i++
+    b loop10
+loop10_end:
+    LOAD_ADDR x0, nl_str        // printf("\n")
+    bl _printf                  
+
+printQuery_end:
+    ldr x22,      [sp], #16
+    ldp x20, x21, [sp], #16
+    ldp x29, x30, [sp], #16
+    ret
+
+.globl _print_query_results
+.p2align 2
+_print_query_results:
+    stp x29, x30, [sp, #-16]!
+    stp x20, x21, [sp, #-16]!
+    stp x22, x23, [sp, #-16]!
+
+    mov x20, x0                 // x20 = currUnion
+    str xzr, [sp, #-16]!        // &max = sp; &size = sp + 8
+    mov x1, sp                  //! set max to zero by default, since set_iterate won't invoke _findmax when currUnion is empty!
+    LOAD_ADDR x2, _findmax      // set_iterate(currUnion, &max findmax)
+    bl _set_iterate 
+    ldr w21, [sp]               // w21 = max
+    mov x0, x20 
+    add x1, sp, #8 
+    LOAD_ADDR x2, _findsize     // set_iterate(currUnion, &size, findsize)
+    bl _set_iterate 
+    ldr w22, [sp, #8]           // w22 = size
+    add sp, sp, #16             // pop &max and &size from stack
+    cbnz w21, else8            
+    // if (max == 0)  
+    LOAD_ADDR x0, emptyq_str    
+    bl _printf 
+    b print_query_results_end
+else8:  // if (max != 0)
+    LOAD_ADDR x0, succq_str         
+    str w22, [sp, #-16]!        // printf("Matches %d document(s) (ranked);\n", size);
+    bl _printf
+    add sp, sp, #16
+    mov w23, wzr                // w23 = i
+    sub sp, sp, #16             // make space for int thresh
+loop11:
+    cmp w23, w21
+/*
+    str x23, [sp, #-16]!
+    LOAD_ADDR x0, reg_str
+    bl _printf 
+    add sp, sp, #16
+*/
+    bhs loop11_end 
+    sub w2, w21, w23            // w2 = max - i 
+    str w2, [sp]                // thresh = max - i
+    mov x0, x20 
+    mov x1, sp 
+    LOAD_ADDR x2, _printRanked  // set_iterate(currUnion, &thresh, printRanked);
+    bl _set_iterate
+    add w23, w23, #1            // i++
+    b loop11
+loop11_end:
+    add sp, sp, #16             // pop int thresh from stack
+print_query_results_end:
+    LOAD_ADDR x0, endq_str
+    bl _printf 
+
+    ldp x22, x23, [sp], #16
+    ldp x20, x21, [sp], #16
+    ldp x29, x30, [sp], #16
+    ret
+
+.globl _printRanked
+.p2align 2
+_printRanked:
+    stp x29, x30, [sp, #-16]!
+    stp x20, x21, [sp, #-16]!
+    stp x22, x23, [sp, #-16]!
+
+    ldr x20, [x2]               // x20 = *num
+    mov x21, x1                 // x21 = key
+    ldr x2, [x0]                // x2 = *thresh
+    cmp x20, x2                 // if (*num != *thresh) return
+    bne printRanked_end  
+    mov x0, x21 
+    LOAD_ADDR x1, r_str         // fopen(key, "r")
+    bl _fopen 
+    mov x22, x0                 // x22 = fp
+    bl _file_readLine          
+    mov x23, x0                 // x23 = url 
+    mov x0, x21                 // parseInt(key)
+    bl _parseInt
+    stp x20, x0, [sp, #-32]!
+    str x23, [sp, #16]
+    LOAD_ADDR x0, ds_str        // printf("score %d doc %d; %s\n", *num, docID, url);
+    bl _printf
+    add sp, sp, #32
+    mov x0, x23 
+    MWRP _free, fdbg0, fdbg1     // free(url)
+    mov x0, x22                  // fclose(fp);
+    bl _fclose
+
+printRanked_end:
+    ldp x22, x23, [sp], #16
+    ldp x20, x21, [sp], #16
+    ldp x29, x30, [sp], #16
+    ret
+
+.p2align 2 
+_findmax:
+    stp x29, x30, [sp, #-16]!
+
+    ldr w3, [x0]                // w3 = *max
+    ldr w4, [x2]                // w4 = *num 
+    cmp w4, w3                  
+    csel w5, w4, w3, ge         // w5 = (*num > *max) ? *num ; *max
+    str w5, [x0]                // *max = w5
+
+findmax_end:
+    ldp x29, x30, [sp], #16
+    ret 
+
+.p2align 2
+_findsize:
+    stp x29, x30, [sp, #-16]!
+
+    ldr w3, [x0]                // w3 = *size 
+    add w3, w3, #1              // w3 = w3 + 1
+    str w3, [x0]                // *size = w3
+
+findsize_end:
+    ldp x29, x30, [sp], #16
+    ret 
+
+.p2align 2
+_prompt:
+    stp x29, x30, [sp, #-16]!
+
+    LOAD_CONT_GOT x0, ___stdinp
+    ldr x0, [x0]
+    bl _fileno 
+    bl _isatty
+    tbz w0, #0, prompt_end      // if (isatty(fileno(stdin)) == 0) goto end of function
+    LOAD_ADDR x0, qm_str        // printf("Query? ");
+    bl _printf
+
+prompt_end:
+    ldp x29, x30, [sp], #16
+    ret 
+
+.p2align 2
+_intsave:
+    stp x29, x30, [sp, #-16]!
+    str x20,      [sp, #-16]!
+
+    mov w20, w0                 // w20 = item 
+    mov x0, #4
+    MWRP _malloc, mdbg0, mdbg1  // malloc(sizeof(int))
+    str w20, [x0]               // *saved = item 
+
+intsave_end:
+    ldr x20,      [sp], #16
+    ldp x29, x30, [sp], #16
+    ret 
+
+.p2align 2 
+_itemdelete:
+    stp x29, x30, [sp, #-16]!
+
+    cbz x0, itemdelete_end
+    bl _free
+
+itemdelete_end:
+    ldp x29, x30, [sp], #16
+    ret 
+
+.globl _main 
+.p2align 2
+_main:
+    stp x29, x30, [sp, #-16]!
+    stp x20, x21, [sp, #-16]!
+    stp x22, x23, [sp, #-16]!
+    stp x24, x25, [sp, #-16]!
+    
+    sub sp, sp, #16
+    mov x20, sp                 // x20 = &pageDirectory
+    mov x2, x20                 // parseArgs(argc, argv, &pageDirectory)
+    bl _parseArgs 
+    mov x21, x0                 // x21 = index 
+    sub sp, sp, #MAXQUERYCHARS
+    mov x22, sp                 // x22 = query[]
+    sub sp, sp, #(4 * MAXQUERYCHARS)    // Each char * in words[] requires 8 bytes
+    mov x23, sp                 // x23 = words[]
+loop12: // while (newQuery(query))
+    mov x0, x22                 // newQuery(query)
+    bl _newQuery
+    tbz w0, #0, loop12_end      // if (!newQuery(query)) goto loop12_end
+    mov x0, x22 
+    mov x1, x23                 // tokenize(query, words)
+    bl _tokenize
+    mov w24, w0                 // w24 = wordNo 
+    cmp w24, #-1                // if (wordNo == -1) continue;
+    beq loop12  
+    mov w25, wzr                // w25 = i
+loop13: // for (int i = 0; i < wordNo; i++)
+    cmp w25, w24 
+    bge loop13_end 
+    ldr x0, [x23, x25, lsl #3]  // normalizeWord(words[i])
+    bl _normalizeWord
+    add w25, w25, #1            // i++
+    b loop13 
+
+loop13_end:
+    ldr x0, [x20]               // x0 = pageDirectory
+    mov x1, x21 
+    mov x2, x23 
+    mov w3, w24                 // Query(pageDirectory, index, words, wordNo)
+    bl _Query 
+    b loop12
+
+loop12_end:
+    add sp, sp, #(4 * MAXQUERYCHARS)        // pop words[] from stack 
+    add sp, sp, #MAXQUERYCHARS              // pop query[] from stack
+    LOAD_CONT_GOT x0, ___stdoutp 
+    ldr x0, [x0]
+    LOAD_ADDR x1, nl_str                    // fprintf(stdout,"\n");
+    bl _fprintf 
+    ldr x0, [x20]               // x0 = pageDirectory
+    MWRP _free, fdbg0, fdbg1    // free(pageDirectory)
+    add sp, sp, #16             // pop &pageDirectory from stack 
+    mov x0, x21                 // index_delete(index)
+    bl _index_delete
+    mov x0, xzr                 // return 0
+
+main_end:
+    ldp x24, x25, [sp], #16
+    ldp x22, x23, [sp], #16
+    ldp x20, x21, [sp], #16
+    ldp x29, x30, [sp], #16
+    ret
+
 

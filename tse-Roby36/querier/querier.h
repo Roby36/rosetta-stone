@@ -8,6 +8,7 @@
  */
 
 #include <stdio.h>
+#include <ctype.h>
 #include <stdbool.h>
 #include <string.h>
 #include <strings.h>
@@ -16,7 +17,6 @@
 #include <unistd.h>
 #include "pagedir.h"
 #include "index.h"
-#include "word.h"
 #include "set.h"
 #include "file.h"
 
@@ -47,6 +47,28 @@ const int MAXDOCUMENTS = 1000;
  *   a keyboard, else no prompt is printed.
  */
 void prompt(void);
+
+/* ******************* normalizeWord ************************************** */
+/* This function normalizes a word, converting it to lower-case.
+ *
+ * We assume:
+ *   Caller provides a pointer to a non-NULL string pointer.
+ * 
+ * We return:
+ *   Nothing (void).
+ *   
+ * We guarantee:
+ *   If the provided word is NULL, it is ignored.
+ *   Otherwise, every alphabetical character of the word is converted
+ *   to lower-case, and all non-alphabetical characters remain unchanged.
+ *   
+ * Notes:
+ *   Memory is neither allocated nor freed; the word characters
+ *   are changed in place, maintaining their original places in memory.
+ *   The normalized word maintains the same pointer and memory address
+ *   as the original word (which is permanently changed).
+ */
+void normalizeWord(char* word);
 
 /* ******************* parseArgs ************************************** */
 /* This function is used to validate the command line arguments, and
@@ -240,8 +262,6 @@ void findsize(void* arg, const char*key, void* item);
  * It frees every non-NULL item in the set.
  */
 void itemdelete(void* item);
-
-
 
 /* Additional helpers */
 
