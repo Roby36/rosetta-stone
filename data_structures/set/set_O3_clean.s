@@ -108,10 +108,6 @@ LBB2_5:
 	ldp	x22, x21, [sp], #48             ; 16-byte Folded Reload
 	ret
 
-
-
-
-
                                         ; -- End function
 	.globl	_set_find                       ; -- Begin function set_find
 	.p2align	2

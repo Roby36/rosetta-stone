@@ -2,7 +2,6 @@
 .include "../../utils/macro_defs.s"
 
 // .equ MDBG, 1
-// .equ RDBG, 1
 
 /* struct linked_list_node memory locations */
 .equ n_item, 0
@@ -36,7 +35,6 @@ lle_r:    .asciz  "\nlinked_list_extract returned %llx\n"
 _linked_list_node_new: 
     stp x29, x30, [sp, #-16]!
     str x26,      [sp, #-16]!
-    RWRP , llnn_c
     mov x26, x0     // save item to non-volatile register x26 (NOT USED BY OTHER FUNCTIONS)
     // linked_list_node_t* node = malloc (sizeof(linked_list_node_t));
     mov x0, #n_size
@@ -47,7 +45,6 @@ _linked_list_node_new:
     str x26, [x0, #n_item]   // node->item = item
     str xzr, [x0, #n_next]   // node->next = NULL
 llnn_end:                    // node pointer already stored in x0
-    RWRP , llnn_r
     ldr x26,      [sp], #16
     ldp x29, x30, [sp], #16
     ret
@@ -74,7 +71,6 @@ loop1:                     // pre-test loop
     add w2, w2, #1         // curr_index++
     b loop1                // loop1 end
 llgi_end:
-    RWRP , llgi_r
     ldp x29, x30, [sp], #16
     ret
 
@@ -89,7 +85,6 @@ _linked_list_new:
     cbz x0, lln_end         // if x0 = 0, then linked_list = NULL, hence return NULL
     str xzr, [x0, #ll_head] // linked_list->head = NULL;
 lln_end:
-    RWRP , lln_r
     ldp x29, x30, [sp], #16
     ret
 
@@ -171,6 +166,28 @@ lle2_end:
     ldp x29, x30, [sp], #16
     ret
 
+/** void linked_list_reverse(linked_list_t * linked_list) **/
+.globl _linked_list_reverse
+.p2align 2
+_linked_list_reverse:
+    // if (linked_list == NULL || linked_list->head == NULL) return 
+    cbz x0, llr_end
+    ldr x1, [x0, #(ll_head)]        // x1 = linked_list->head
+    cbz x1, llr_end 
+    mov x2, x1                      // x2 = it 
+    ldr x3, [x2, #(n_next)]         // x3 = it_next 
+    str xzr, [x2, #(n_next)]        // it->next = NULL
+loop6:  // while (it_next != NULL)
+    cbz x3, loop6_end
+    ldr x4, [x3, #(n_next)]         // x4 = it_next_temp
+    str x2, [x3, #(n_next)]         // it_next->next = it
+    mov x2, x3                      // it = it_next 
+    mov x3, x4                      // it_next = it_next_temp
+    b loop6
+loop6_end:
+    str x2, [x0, #(ll_head)]        // linked_list->head = it
+llr_end:
+    ret
 
 /** void linked_list_print(linked_list_t* linked_list, FILE* fp, void (*itemprint)(FILE* fp, void* item)) **/
 .globl _linked_list_print

@@ -115,31 +115,6 @@ rdbg0:    .asciz  "Printing register %d \n"
 .endif
 .endm
 
-.macro RWRP x=x0, s
-.ifdef RDBG
-/* Saves & restores volatile registers x0-x8 */
-    stp x1, x2, [sp, #-16]!
-    stp x3, x4, [sp, #-16]!
-    stp x5, x6, [sp, #-16]!
-    stp x7, x8, [sp, #-16]!
-
-    stp \x, x0, [sp, #-16]!
-    LOAD_ADDR x0, \s
-    bl _printf
-    ldp \x, x0, [sp], #16
-
-    ldp x7, x8, [sp], #16
-    ldp x5, x6, [sp], #16
-    ldp x3, x4, [sp], #16
-    ldp x1, x2, [sp], #16
-.endif
-.endm
-
-
-
-
-
-
 .macro FPRINTF_STR fpr, s
     mov x0, \fpr          
     LOAD_ADDR x1, \s

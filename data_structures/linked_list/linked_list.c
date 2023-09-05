@@ -115,6 +115,30 @@ linked_list_extract2(linked_list_t* linked_list, int item_index)
     return item;
 }
 
+void linked_list_reverse(linked_list_t * linked_list)
+{
+    if (linked_list == NULL || linked_list->head == NULL)
+        return;
+    
+    linked_list_node_t * it      = linked_list->head;
+    linked_list_node_t * it_next = it->next;
+    linked_list_node_t * it_next_temp;
+
+    // Set the first element's next to NULL
+    it->next = NULL;
+
+    while (it_next != NULL) {
+        it_next_temp = it_next->next;
+        it_next->next = it;
+
+        it = it_next;
+        it_next = it_next_temp;
+    }
+
+    // Update head 
+    linked_list->head = it;
+}
+
 /**************** linked_list_print() ****************/
 /* see linked_list.h for description */
 void

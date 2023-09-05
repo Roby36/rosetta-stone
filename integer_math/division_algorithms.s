@@ -1,6 +1,8 @@
 
 .include "../utils/macro_defs.s"
-.equ RDBG, 1
+
+// .equ RDBG, 1
+
 /* Unsigned 64-bit division: 
  * takes dividend in x0 and divisor in x1
  * returns quotient in x0 and remainder in x1 

@@ -50,6 +50,8 @@ extern void linked_list_insert2(linked_list_t* linked_list, void* item, int item
  */
 extern void * linked_list_extract2(linked_list_t* linked_list, int item_index);
 
+extern void linked_list_reverse(linked_list_t * linked_list);
+
 /**************** linked_list_print ****************/
 /* Print the whole linked_list in order.
  *

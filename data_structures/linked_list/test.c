@@ -64,14 +64,20 @@ void linked_list_test0()
     printf("\n --- Inserting items ---\n");
     linked_list_insert2(m_ll, it1, 0);
     linked_list_insert2(m_ll, it2, 0);
-    linked_list_insert2(m_ll, it3, 1);
-    linked_list_insert2(m_ll, it4, 1);
-    linked_list_insert2(m_ll, it5, 2);
-    linked_list_insert2(m_ll, it6, 2);
+    linked_list_insert2(m_ll, it3, 0);
+    linked_list_insert2(m_ll, it4, 0);
+    linked_list_insert2(m_ll, it5, 0);
+    linked_list_insert2(m_ll, it6, 0);
     printf("\n --- Items inserted ---\n");
 
     printf("\n-----------------------------\n");
     linked_list_print(m_ll, stdout, nameprint);
+
+    /* Reverse linked list */
+    printf("\n --- Reversing list ---\n");
+    linked_list_reverse(m_ll);
+    linked_list_print(m_ll, stdout, nameprint);
+    printf("\n --- List reversed ---\n");
 
     /* Extract some items */
     printf("\n --- Extracting items ---\n");
