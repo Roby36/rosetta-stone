@@ -1,4 +1,7 @@
 
+.ifndef MACRO_DEFS
+.equ MACRO_DEFS, 1
+
 /* load memory address of symbol s into register r */
 .macro LOAD_ADDR r=x0, s
     adrp \r, \s@PAGE       ; load symbol's page address into register r
@@ -120,3 +123,6 @@ rdbg0:    .asciz  "Printing register %d \n"
     LOAD_ADDR x1, \s
     bl _fprintf      
 .endm
+
+// MACRO_DEFS
+.endif 

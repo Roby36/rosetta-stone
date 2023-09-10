@@ -1,5 +1,7 @@
 
+.ifndef MACRO_DEFS
 .include "../utils/macro_defs.s"
+.endif 
 
 // .equ RDBG, 1
 
@@ -19,16 +21,16 @@ mudiv64_zero_ret:
     ret
 mudiv64_start:
     mov x2, xzr                 // x2 = count, intialized to zero
-loop1:  // while divisor (x1) < dividend (x0)
+mudiv64_loop1:  // while divisor (x1) < dividend (x0)
     cmp x1, x0
-    bhs loop1_end
+    bhs mudiv64_loop1_end
     add x2, x2, #1              // count++
     lsl x1, x1, #1              // shift divisor left by one bit
-    b loop1
-loop1_end:
+    b mudiv64_loop1
+mudiv64_loop1_end:
     mov x3, #0                  // x3 = quotient, initialze to zero
-loop2:  // while count >= 0
-    tbnz x2, #63, loop2_end
+mudiv64_loop2:  // while count >= 0
+    tbnz x2, #63, mudiv64_loop2_end
     lsl x3, x3, #1              // shift quotient left by 1 bit
     sub x4, x0, x1              // x4 = dividend - divisor
     cmp x1, x0
@@ -36,8 +38,8 @@ loop2:  // while count >= 0
     csel x0, x0, x4, hi         // if divisor <= dividend, dividend = dividend - divisor
     sub x2, x2, #1              // count --
     lsr x1, x1, #1              // shift divisor right by 1 bit
-    b loop2
-loop2_end:
+    b mudiv64_loop2
+mudiv64_loop2_end:
     mov x1, x0                  // x1 = remainder (dividend)
     mov x0, x3                  // x0 = quotient 
     ret
