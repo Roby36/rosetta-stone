@@ -9,6 +9,8 @@ verticalBoundary:   .byte   '|'
 cornerBoundary:     .byte   '+'
 passageSpot:        .byte   '#'
 
+gvg_err:    .asciz  "(%d, %d) position not allowed; %c\n"
+
 // maximum characters in map
 .equ MAXMAPCHAR, 10000
 
@@ -228,6 +230,109 @@ loop3_end:
     mov w0, #1              // return true 
 isVisible_end:
     ldp s8, s9,   [sp], #16
+    ldp x27, x28, [sp], #16
+    ldp x25, x26, [sp], #16
+    ldp x23, x24, [sp], #16
+    ldp x21, x22, [sp], #16
+    ldp x19, x20, [sp], #16
+    ldp x29, x30, [sp], #16
+    ret
+
+.globl _getVisibleGrid
+.macro CMP_N_BRANCH ch, lab
+    LOAD_ADDR x1, \ch
+    ldrb w1, [x1]
+    cmp w1, w0 
+    beq \lab
+.endm
+.p2align 2
+_getVisibleGrid: // void getVisibleGrid(grid_t *grid, char pmap[], int px, int py)
+    stp x29, x30, [sp, #-16]!
+    stp x19, x20, [sp, #-16]!
+    stp x21, x22, [sp, #-16]!
+    stp x23, x24, [sp, #-16]!
+    stp x25, x26, [sp, #-16]!
+    stp x27, x28, [sp, #-16]!
+
+    cbz x0, getVisibleGrid_end
+    tbnz w2, #31, getVisibleGrid_end
+    tbnz w3, #31, getVisibleGrid_end
+    ldr w4, [x0, #g_NC]
+    cmp w2, w4 
+    bgt getVisibleGrid_end
+    ldr w4, [x0, #g_NR]
+    cmp w3, w4 
+    bge getVisibleGrid_end
+
+    mov x20, x0                         // x20 = grid 
+    mov x21, x1                         // x21 = pmap[]
+    mov w22, w2                         // w22 = px 
+    mov w23, w3                         // w23 = py
+    TILE_CHAR w0, x20, w22, w23 
+    CMP_N_BRANCH horizontalBoundary, if6 
+    CMP_N_BRANCH verticalBoundary, if6 
+    CMP_N_BRANCH cornerBoundary, if6 
+    CMP_N_BRANCH solidRock, if6 
+    cmp w0, '\n'
+    beq if6 
+    b endif6
+if6:
+    stp x22, x23, [sp, #-32]!
+    str x0,       [sp, #16]
+    LOAD_CONT_GOT x0, ___stderrp
+    ldr x0, [x0]
+    LOAD_ADDR x1, gvg_err           // fprintf(stderr, "(%d, %d) position not allowed; %c\n", px, py, p);
+    bl _fprintf
+    add sp, sp, #32 
+    b getVisibleGrid_end           
+endif6:
+    mov w24, wzr                    // w24 = i
+    ldr w25, [x20, #g_TC]           // w25 = grid->TC
+loop4:  // for (int i = 0; i < grid->TC; i++)
+    cmp w24, w25 
+    bge loop4_end
+    mov x0, x20 
+    mov w1, w24 
+    bl _getX 
+    mov w26, w0     // w26 = x
+    mov x0, x20 
+    mov w1, w24 
+    bl _getY 
+    mov w27, w0     // w27 = y 
+
+    cmp w26, w22                // nzcv = (eq ? nzcv(w27 - w23) : 0)
+    ccmp w27, w23, #0b0000, eq  
+    beq if7 
+    add x0, x20, #g_map         // x0 = &(grid->map)
+    ldrb w28, [x0, w24, sxtw]   // w28 = (grid->map)[i]
+    cmp w28, '\n'
+    beq elseif7_1
+    mov x0, x20 
+    mov w1, w22 
+    mov w2, w23 
+    mov w3, w26 
+    mov w4, w27 
+    bl _isVisible
+    tbnz w0, #0, elseif7_1
+    b else7 
+if7:    // if (x == px && y == py)
+    mov w0, '@'
+    strb w0, [x21, w24, sxtw]   // pmap[i] = '@'
+    b endif7 
+elseif7_1:  // else if ((grid->map)[i] == '\n' || isVisible(grid, px, py, x, y))
+    strb w28, [x21, w24, sxtw]   // pmap[i] = (grid->map)[i]
+    b endif7
+else7:
+    LOAD_ADDR x0, solidRock
+    ldrb w0, [x0]
+    strb w0, [x21, w24, sxtw]   // pmap[i] = solidRock
+endif7:
+    add w24, w24, #1                // i++
+    b loop4
+loop4_end:
+    strb wzr, [x21, w25, sxtw]  // pmap[grid->TC] = '\0'
+
+getVisibleGrid_end:
     ldp x27, x28, [sp], #16
     ldp x25, x26, [sp], #16
     ldp x23, x24, [sp], #16

@@ -165,11 +165,16 @@ bool isVisible(grid_t *grid, int px, int py, int ox, int oy)
 
 /**************** getVisibleGrid ****************/
 /* see grid.h for description */
+
+/*
 void getVisibleGrid(grid_t *grid, char pmap[], int px, int py)
 {
-
     // Validate parameters:
-    if (grid == NULL || px < 0 || px > grid->NC || py < 0 || py > grid->NR - 1)
+    if (grid == NULL || 
+        px < 0 || 
+        px > grid->NC || 
+        py < 0 || 
+        py > grid->NR - 1)
         return;
 
     // Verify that player is on allowed position:
@@ -201,6 +206,7 @@ void getVisibleGrid(grid_t *grid, char pmap[], int px, int py)
     // Finally, close array with null character:
     pmap[grid->TC] = '\0';
 }
+*/
 
 /**************** grid_delete ****************/
 /* see grid.h for description */
