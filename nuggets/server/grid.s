@@ -157,15 +157,13 @@ endif3:
     mov x20, x0             // x20 = grid 
     mov w21, w1             // w21 = px 
     mov w22, w2             // w22 = py 
-    cmp w1, w3 
-    csel w23, w1, w3, lt    // w23 = xmin 
-    csel w24, w3, w1, lt    // w24 = xmax 
-    cmp w2, w4 
-    csel w25, w2, w4, lt    // w25 = ymin 
-    csel w26, w4, w2, lt    // w26 = ymax 
-
-    sub w5, w4, w2          // w5 = oy - py 
-    sub w6, w3, w1          // w6 = ox - px 
+    
+    subs w6, w3, w1         // w6 = ox - px              
+    csel w23, w1, w3, ge    // w23 = xmin 
+    csel w24, w3, w1, ge    // w24 = xmax 
+    subs w5, w4, w2         // w5 = oy - py 
+    csel w25, w2, w4, ge    // w25 = ymin 
+    csel w26, w4, w2, ge    // w26 = ymax 
     scvtf s5, w5            // s5 = (float)(oy - py)
     scvtf s6, w6            // s6 = (float)(ox - px)
     fdiv s8, s5, s6         // s8 = m 

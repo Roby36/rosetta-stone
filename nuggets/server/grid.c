@@ -21,7 +21,6 @@ typedef struct grid
 /**************** grid_new ****************/
 /* see grid.h for description */
 
-/*
 grid_t *
 grid_new(FILE * mapFp)
 {
@@ -50,7 +49,6 @@ grid_new(FILE * mapFp)
     (grid->map)[grid->TC] = '\0';     // termiante grid with null character
     return grid;
 }
-*/
 
 /**************** getX ****************/
 /* see grid.h for description */
@@ -92,7 +90,6 @@ int getPos(grid_t * grid, int x, int y)
 /**************** isVisible ****************/
 /* see grid.h for description */
 
-/*
 bool isVisible(grid_t *grid, int px, int py, int ox, int oy)
 {
     // return false is any parameter is invalid:
@@ -161,12 +158,10 @@ bool isVisible(grid_t *grid, int px, int py, int ox, int oy)
     // If we reached this point, then nothing blocks vision:
     return true;
 }
-*/
 
 /**************** getVisibleGrid ****************/
 /* see grid.h for description */
 
-/*
 void getVisibleGrid(grid_t *grid, char pmap[], int px, int py)
 {
     // Validate parameters:
@@ -206,7 +201,6 @@ void getVisibleGrid(grid_t *grid, char pmap[], int px, int py)
     // Finally, close array with null character:
     pmap[grid->TC] = '\0';
 }
-*/
 
 /**************** grid_delete ****************/
 /* see grid.h for description */
