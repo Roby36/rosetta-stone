@@ -146,11 +146,11 @@ _getPos:                                ; @getPos
 	mov	w0, #-1
 	tbnz	w2, #31, LBB3_6
 ; %bb.3:
-	ldr	w9, [x8, #4]
+	ldr	w9, [x8, #4]		// w9 = grid->NC
 	cmp	w9, w1
 	b.lt	LBB3_6
 ; %bb.4:
-	ldr	w8, [x8]
+	ldr	w8, [x8]			// w8 = grid->NR 
 	cmp	w8, w2
 	b.le	LBB3_7
 ; %bb.5:

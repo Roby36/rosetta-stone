@@ -20,7 +20,6 @@ typedef struct grid
 
 /**************** grid_new ****************/
 /* see grid.h for description */
-
 grid_t *
 grid_new(FILE * mapFp)
 {
@@ -89,7 +88,6 @@ int getPos(grid_t * grid, int x, int y)
 
 /**************** isVisible ****************/
 /* see grid.h for description */
-
 bool isVisible(grid_t *grid, int px, int py, int ox, int oy)
 {
     // return false is any parameter is invalid:
@@ -161,7 +159,6 @@ bool isVisible(grid_t *grid, int px, int py, int ox, int oy)
 
 /**************** getVisibleGrid ****************/
 /* see grid.h for description */
-
 void getVisibleGrid(grid_t *grid, char pmap[], int px, int py)
 {
     // Validate parameters:
@@ -254,6 +251,7 @@ get_map(grid_t *grid)
 
 /**************** Unit-testing ****************/
 
+
 #ifdef GRID_TEST
 
 int main()
@@ -261,7 +259,7 @@ int main()
 
     // Open any map for testing by specifying its directory
     FILE *mapFp = fopen("../maps/blobby.txt", "r");
-    grid_t *grid = grid_new(mapFp);
+    grid_t * grid = grid_new(mapFp);
 
     // Print the entire map and the visible grid from an arbitrary position:
     // (Remember that remembered room spots are not accounted for)
@@ -279,3 +277,4 @@ int main()
 }
 
 #endif // GRID_TEST
+

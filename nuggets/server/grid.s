@@ -2,6 +2,8 @@
 .include "../../utils/macro_defs.s"
 .include "../../integer_math/division_algorithms.s"
 
+.equ GRID_TEST, 1
+
 .data 
 solidRock:          .byte   ' '
 horizontalBoundary: .byte   '-'
@@ -10,6 +12,8 @@ cornerBoundary:     .byte   '+'
 passageSpot:        .byte   '#'
 
 gvg_err:    .asciz  "(%d, %d) position not allowed; %c\n"
+map_str:    .asciz  "../maps/blobby.txt"
+r_str:      .asciz  "r"
 
 // maximum characters in map
 .equ MAXMAPCHAR, 10000
@@ -236,6 +240,8 @@ isVisible_end:
     ldp x29, x30, [sp], #16
     ret
 
+
+
 .globl _getVisibleGrid
 .macro CMP_N_BRANCH ch, lab
     LOAD_ADDR x1, \ch
@@ -338,4 +344,155 @@ getVisibleGrid_end:
     ldp x19, x20, [sp], #16
     ldp x29, x30, [sp], #16
     ret
+
+.globl _getX
+.macro GETXY_ARG_CHECK l, r
+    mov x2, x0              // x2 = grid 
+    mov w0, #\r             // w0 = r
+    cbz x2, \l 
+    tbnz w1, #31, \l
+    ldr w3, [x2, #g_TC]     // w3 = grid->TC 
+    cmp w3, w1 
+    bls \l
+.endm
+.p2align 2 
+_getX:  // int getX(grid_t *grid, int pos)
+    stp x29, x30, [sp, #-16]!
+    GETXY_ARG_CHECK getX_end, -1
+
+    sxtw x0, w1             // x0 = pos 
+    ldrsw x1, [x2, #g_NC]   // x1 = grid->NC 
+    add x1, x1, #1          // x1 = grid->NC  + 1
+    bl _mudiv64 
+    mov x0, x1              //! We assume the remainder actually fits in a 32-bit register!
+
+getX_end:
+    ldp x29, x30, [sp], #16
+    ret 
+
+.globl _getY
+.p2align 2
+_getY: // int getY(grid_t *grid, int pos)
+    stp x29, x30, [sp, #-16]!
+    GETXY_ARG_CHECK getY_end, -1
+
+    stp x2, x1, [sp, #-16]!     // save grid and pos on stack 
+    mov x0, x2 
+    bl _getX
+    ldp x2, x1, [sp], #16       // reload grid and pos from stack 
+    sub w0, w1, w0              // w0 = pos - getX(grid, pos)
+    ldr w1, [x2, #g_NC]         // w1 = grid->NC 
+    add w1, w1, #1 
+    udiv w0, w0, w1 
+
+getY_end:
+    ldp x29, x30, [sp], #16
+    ret 
+
+.globl _getPos 
+.p2align 2 
+_getPos:
+    mov x4, x0                  // x4 = grid
+    mov w0, #-1 
+    cbz x4, getPos_end 
+    tbnz w1, #31, getPos_end
+    tbnz w2, #31, getPos_end 
+    ldr w3, [x4, #g_NC]         // w3 = grid->NC 
+    cmp w1, w3 
+    bhi getPos_end
+    ldr w5, [x4, #g_NR]
+    cmp w2, w5
+    bhs getPos_end 
+
+    add w3, w3, #1 
+    madd w0, w2, w3, w1         // w0 = y * (grid->NC + 1) + x
+getPos_end:
+    ret
+
+.globl _get_gridPoint 
+.p2align 2 
+_get_gridPoint:
+    GETXY_ARG_CHECK get_gridPoint_end, 0
+    add x1, x1, #g_map  // since w1 is unsigned, no sign extension needed 
+    ldr w0, [x1]
+get_gridPoint_end:
+    ret 
+
+.globl _grid_delete
+.p2align 2
+_grid_delete:
+    stp x29, x30, [sp, #-16]!
+    cbz x0, grid_delete_end
+    MWRP _free, fdbg0, fdbg1
+grid_delete_end:
+    ldp x29, x30, [sp], #16
+    ret 
+
+.globl _get_TC 
+.p2align 2
+_get_TC:
+    mov x2, x0 
+    mov w0, #-1 
+    cbz x2, get_TC_end 
+    ldr x0, [x2, #g_TC]
+get_TC_end:
+    ret
+
+.globl _set_gridPoint
+.p2align 2 
+_set_gridPoint:
+    mov w4, w3 
+    GETXY_ARG_CHECK set_gridPoint_end, 0
+    add x1, x1, #g_map  // since w1 is unsigned, no sign extension needed 
+    str w4, [x1]        // (grid->map)[pos] = c
+    mov w1, #1          // return true
+set_gridPoint_end:
+    ret 
+
+.globl _get_map
+.p2align 2
+_get_map:
+    cbz x0, get_map_end
+    ldr x0, [x0, #g_map]
+get_map_end:
+    ret 
+
+
+.ifdef GRID_TEST
+.globl _main 
+.p2align 2 
+_main:
+    stp x29, x30, [sp, #-16]!
+    stp x20, x21, [sp, #-16]!
+    LOAD_ADDR x0, map_str
+    LOAD_ADDR x1, r_str 
+    bl _fopen 
+    mov x20, x0                 // x20 = mapFp 
+    bl _grid_new
+    mov x21, x0                 // x21 = grid 
+    mov x6, #((16 * MAXMAPCHAR) / 16)
+    sub sp, sp, x6
+    mov x1, sp 
+    mov w2, #45 
+    mov w3, #12
+    bl _getVisibleGrid
+//! This would load grid->map[0], but we need simply the pointer grid->map!
+    ldr x0, [x21, #g_map]
+//!
+    add x0, x21, #g_map
+    bl _puts 
+    mov x0, sp 
+    bl _puts 
+    mov x6, #((16 * MAXMAPCHAR) / 16)
+    add sp, sp, x6
+    mov x0, x21 
+    bl _grid_delete
+    mov x0, x20 
+    bl _fclose
+    mov w0, wzr 
+main_end:
+    ldp x20, x21, [sp], #16
+    ldp x29, x30, [sp], #16
+    ret
+.endif // GRID_TEST
 
