@@ -95,7 +95,7 @@ stack_success:
 
 .data 
 mdbg0:    .asciz  "\ncalling malloc() with %llx\n"
-mdbg1:    .asciz  "\nmalloc() returned %llx"
+mdbg1:    .asciz  "\nmalloc() returned %llx\n"
 fdbg0:    .asciz  "\ncalling free() with %llx\n"
 fdbg1:    .asciz  "\nfree() returned\n"
 rdbg0:    .asciz  "Printing register %d \n"

@@ -8,17 +8,10 @@
 // Hard-coded constants
 static const int numColumns  = 3;
 static const int numRows     = 2;
-static const double discount = 0.9;
-static const int tot_rounds  = 10;
 
-// Value matrix
-static double ivalues[numRows][numColumns] = {{0.0, 0.0, 0.0},
-                                              {0.0, 0.0, 0.0}};
-
-// namespace Transitions 
-static const double desired = 0.9;
-static const double left    = 0.05;
-static const double right   = 0.05;
+// Hard-coding terminal state
+static const int termState_x = numColumns - 1; 
+static const int termState_y = numRows    - 1;
 
 // enum Action
 static const int NORTH      = 0;
@@ -28,11 +21,26 @@ static const int WEST       = 3;
 static const int STILL      = 4;
 static const int NUMACTIONS = 5;
 
-// Hard-coding terminal state
-static const int termState_x = numColumns - 1; 
-static const int termState_y = numRows    - 1;
+// namespace Transitions 
+static const double desired = 0.9;
+static const double left    = 0.05;
+static const double right   = 0.05;
+static const double discount = 0.9;
 
-// Convert from matrix format to double pointer 
+// Value matrix
+static double ivalues[numRows][numColumns] = {{0.0, 0.0, 0.0},
+                                              {0.0, 0.0, 0.0}};
+
+// Reward matrix
+static double R[numRows][numColumns] = {{-0.1, -0.1, -0.05},
+                                        {-0.1, -0.1, 1.0}};
+
+typedef struct State {
+    int x;
+    int y;
+} State_t;
+
+/* Convert from matrix format to double pointer */
 double ** allocate_matrix(double m[numRows][numColumns]) {
     // Allocate array of numRows pointers to doubles
     double ** res = (double **) malloc (sizeof(double *) * sizeof(numRows));
@@ -48,6 +56,15 @@ double ** allocate_matrix(double m[numRows][numColumns]) {
     return res;
 }
 
+/* Update an array of pointers by taking in a matrix */
+void update_matrix(double ** res, double m[numRows][numColumns]) {
+    for (int row = 0; row < numRows; row++) {
+    for (int col = 0; col < numColumns; col++) {
+            res[row][col] = m[row][col];
+    }
+    }
+}
+
 void free_matrix(double ** res) {
     for (int row = 0; row < numRows; row++) {
         // Free the array pointer
@@ -57,10 +74,15 @@ void free_matrix(double ** res) {
     free(res);
 }
 
-typedef struct State {
-    int x;
-    int y;
-} State_t;
+// Function to print array to stdout in matrix format
+void printArray(double ** values) {
+    for (int y = 0; y < numRows; y++) {
+        for (int x = 0; x < numColumns; x++) {
+            printf("\t%f", values[y][x]);
+        }
+        printf("\n\n");
+    }
+}
 
 State_t * State_new(int x, int y) {
     State_t * state = (State_t *) malloc (sizeof(State_t));
@@ -87,38 +109,6 @@ bool State_is_inside(const State_t * s) {
         return false;
     return ((s->x >= 0) && (s->x < numColumns) &&
             (s->y >= 0) && (s->y < numRows));
-}
-
-// Function to print array to stdout in matrix format
-void printArray(double ** values) {
-    for (int y = 0; y < numRows; y++) {
-        for (int x = 0; x < numColumns; x++) {
-            printf("\t%f", values[y][x]);
-        }
-        printf("\n\n");
-    }
-}
-
-// Hard-coding reward function
-double R(const State_t * sf)
-{
-    // Reward determined only by final state reached  
-    // Illegal states zeroed out by T already
-    switch (sf->x) {
-        case 0:
-        case 1:
-            return -0.1;
-        case 2:
-            if (sf->y == 0)
-                return -0.05;
-            else if (sf->y == 1)
-                return 1.0;
-            else
-                break;
-        default:
-            break;
-    }
-    return 0.0;
 }
 
 // Transition probabilities
@@ -182,7 +172,7 @@ void update_values(double *** values)
             for (int yt = 0; yt < numRows; yt++) {
                 // Apply transition formula
                 State_t * st = State_new(xt, yt);
-                sum += T(si, a, st) * (R(st) + discount * ((*values)[yt][xt]));
+                sum += T(si, a, st) * (R[yt][xt] + discount * ((*values)[yt][xt]));
                 State_delete(st);
             }
             }
@@ -195,31 +185,60 @@ void update_values(double *** values)
     }
     }
     // Update array
+    /* Avoid free'ing & allocating full matrix at each iteration!! */
+    update_matrix(*values, next_values);
+/*
     free_matrix(*values);
     *values = allocate_matrix(next_values);
+*/
 }
 
 // Iteration function
 void value_iteration(double *** values, int totRounds, int round) {
-    // Base-case
-    if (round == totRounds) {
-        printf("Iteration terminated\n");
-        return;
+    int r = 0;
+    for (; r < totRounds; r++) {
+        /* Do not print current result at each iteration
+        printf("Round %d:\n", r);
+        printArray(*values);
+        */
+        // Update array
+        update_values(values);
     }
-    // Print current result
-    printf("Round %d:\n", round);
+    // Base-case
+    printf("Round %d:\n", r);
     printArray(*values);
-    // Update array
-    update_values(values);
-    // Recurse
-    value_iteration(values, totRounds, round + 1);
+    printf("Iteration terminated\n");
+    /* Do not use recursion */
+    // value_iteration(values, totRounds, round + 1);
 }
 
-// Testing
-int main() {
+void T_test(const int s1_x, const int s1_y, const int s2_x, const int s2_y, const int a)
+{
+    State_t * s1 = State_new(s1_x, s1_y);
+    State_t * s2 = State_new(s2_x, s2_y);
+    double T_ret = T(s1, a, s2);
+    printf("T returned %f\n", T_ret);
+}
+
+void value_iteration_test(const int tot_rounds)
+{
     double ** values = allocate_matrix(ivalues);
     double *** values_ptr = &values;
     value_iteration(values_ptr, tot_rounds, 0);
     free_matrix(*values_ptr);
+}
+
+// Testing
+/*
+int main() {
+    
+    #ifdef T_TEST
+    T_test(0, 1, 1, 1, 1);
+    #endif // T_TEST
+
+    #ifndef T_TEST
+    value_iteration_test(10);
+    #endif // T_TEST
     return 0;
 }
+*/
