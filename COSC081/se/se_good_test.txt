@@ -1,0 +1,6 @@
+State estimations for round 0:   0.100000  0.100000  0.100000  0.100000
+State estimations for round 1:   0.062500  0.187500  0.250000  0.500000
+State estimations for round 2:   0.015625  0.078125  0.171875  0.734375
+State estimations for round 3:   0.003906  0.027344  0.085938  0.882812
+State estimations for round 4:   0.045898  0.270508  0.462891  0.220703
+State estimations for round 5:   0.364502  0.354248  0.226074  0.055176

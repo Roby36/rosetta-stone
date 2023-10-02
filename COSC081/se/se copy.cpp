@@ -9,14 +9,18 @@ const int commands  = 5;
 
 double transition_prob(int x1, int x0, int u) {
     // Edge cases
-    if ((x0 == 0 && u == -1 && x1 == 0) || (x0 == cells - 1 && u == 1 && x1 == cells - 1))
+    if ((x0 == 0 && u == -1 && x1 == 0) || 
+        (x0 == cells - 1 && u == 1 && x1 == cells - 1))
         return 1;
-    if ((x0 == 1 && u == -1 && x1 == 0) || (x0 == cells - 2 && u == 1 && x1 == cells - 1))
+    if ((x0 == 1 && u == -1 && x1 == 0) || 
+        (x0 == cells - 2 && u == 1 && x1 == cells - 1))
         return 0.75;
-    if ((x0 == 1 && u == -1 && x1 == 1) || (x0 == cells - 2 && u == 1 && x1 == cells - 2))
+    if ((x0 == 1 && u == -1 && x1 == 1) || 
+        (x0 == cells - 2 && u == 1 && x1 == cells - 2))
         return 0.25;
     // General cases
-    if ((u == 1 && x0 < cells - 2) || (u == -1 && x0 > 1))
+    if ((u == 1 && x0 < cells - 2) || 
+        (u == -1 && x0 > 1))
         if ((u == 1 || u == -1) && x0 == x1 || (u == 1 && x1 == x0 + 2) || (u == -1 && x1 == x0 - 2))
             return 0.25;
         if ((u == 1 && x1 == x0 + 1) || (u == -1 && x1 == x0 - 1))
