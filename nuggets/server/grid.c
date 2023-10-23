@@ -1,14 +1,6 @@
 
 #include "grid.h"
 
-/**************** Global constants ****************/
-
-static const char solidRock = ' ';
-static const char horizontalBoundary = '-';
-static const char verticalBoundary = '|';
-static const char cornerBoundary = '+';
-static const char passageSpot = '#';
-
 /***************** Grid struct definition ************************/
 typedef struct grid
 {

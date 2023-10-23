@@ -9,28 +9,27 @@
  */   
 
 
-#ifndef __PLAYER_H
-#define __PLAYER_H
+#pragma once
 
 #include "grid.h"
-#include "mem.h"
 
+#define MAXCHARLINE 100  // maximum number of characters per line when printing player information
 #define MAXMAPCHAR 10000 // maximum number of characters to be stored in map array
+
+const char playerChar = '@';
+
+/**************** Global constants, defined in commConsts.h ****************/
+
+extern const char solidRock;
+extern const char horizontalBoundary;
+extern const char verticalBoundary;
+extern const char cornerBoundary;
+extern const char passageSpot;
+extern const char roomSpot;
 
 /**************** Global types ****************/
 
-typedef struct player
-{
-    bool isActive;             // whether player is still part of the game or has left the game
-                               // this attribute is necessary because hashtables don't support
-                               // single item removal
-    char *name;                // name of player given when player joins
-    int playerNumber;          // number of player in the game
-    int pos;                   // array position of player in grid array
-    int nuggets;               // nuggets collected by the player so far
-    char currGrid[MAXMAPCHAR]; // the grid that is currently visible to the player
-    grid_t *originalMap;       // original empty map of game for reference
-} player_t;
+typedef struct player player_t;
 
 /**************** Function headers ****************/
 
@@ -152,7 +151,3 @@ bool player_isActive(player_t* player);
 void player_addNuggets(player_t* player, int nuggets);
 
 char* player_getGrid(player_t* player);
-
-
-
-#endif //__PLAYER_H

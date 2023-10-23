@@ -2,7 +2,7 @@
 .include "../../utils/macro_defs.s"
 .include "../../integer_math/division_algorithms.s"
 
-.equ GRID_TEST, 1
+// .equ GRID_TEST, 1
 
 .data 
 solidRock:          .byte   ' '

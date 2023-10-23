@@ -14,8 +14,18 @@
 #include <strings.h>
 #include <stdlib.h>
 #include <math.h>
+#include <unistd.h>
 
 #define MAXMAPCHAR 10000 // maximum number of characters to be stored in map array
+
+/**************** Global constants, defined in commConsts.h ****************/
+
+extern const char solidRock;
+extern const char horizontalBoundary;
+extern const char verticalBoundary;
+extern const char cornerBoundary;
+extern const char passageSpot;
+extern const char roomSpot;
 
 /**************** Global types ****************/
 
